@@ -1,11 +1,52 @@
-# unwrap
+# Unwrap
 
-`unwrap` returns the underlying data in the store without a proxy.
+`unwrap` removes store proxy wrapping from a store or store subtree.
 
+## Import
+
+```ts
+import { unwrap } from "solid-js/store";
 ```
-import { unwrap } from "solid-js/store"
+## Type
 
-import type { Store } from "solid-js/store"
-
-function unwrap<T>(store: Store<T>): T
+```ts
+function unwrap<T>(item: T): T;
 ```
+## Parameters
+
+### `item`
+
+- **Type:** `T`
+
+Store value or store subtree to unwrap.
+
+## Return value
+
+- **Type:** `T`
+
+Unwrapped value.
+
+## Behavior
+
+- `unwrap` removes store proxies recursively and returns underlying plain data, reusing existing objects or arrays instead of cloning them when possible.
+- Frozen objects and arrays are shallow-copied before recursive unwrapping, while mutable ones are unwrapped in place.
+- Non-proxy input values are returned unchanged.
+- Mutating the returned value can mutate the underlying store data.
+
+Do not assume `unwrap` produces an isolated deep clone.
+
+## Examples
+
+### Basic usage
+
+```ts
+import { createStore, unwrap } from "solid-js/store";
+
+const [state] = createStore({ user: { name: "John" } });
+const user = unwrap(state.user);
+
+user.name = "Jane";
+```
+## Related
+
+- [`createStore`](create-store.md)

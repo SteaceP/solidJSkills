@@ -1,22 +1,34 @@
-# isServer
+# Is Server
 
-```
-import { isServer } from "solid-js/web"
+`isServer` is a constant boolean that indicates whether code is running in the server bundle.
 
-const isServer: boolean
-```
-This indicates that the code is being run as the server or browser bundle. As the underlying runtimes export this as a constant boolean it allows bundlers to eliminate the code and their used imports from the respective bundles.
+## Import
 
+```ts
+import { isServer } from "solid-js/web";
 ```
+## Type
+
+```ts
+const isServer: boolean;
+```
+## Behavior
+
+- `isServer` is `true` in the server bundle and `false` in the browser bundle.
+- Because it is exported as a constant, bundlers can eliminate unreachable branches.
+
+## Examples
+
+### Basic usage
+
+```ts
 import { isServer } from "solid-js/web";
 
 if (isServer) {
-
-  // I will never make it to the browser bundle
-
-} else {
-
-  // won't be run on the server;
-
+	serverOnlyWork();
 }
 ```
+## Related
+
+- [`DEV`](dev.md)
+- [`isDev`](is-dev.md)

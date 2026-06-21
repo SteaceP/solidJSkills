@@ -1,110 +1,70 @@
-# createResource
+# Create Resource
 
-Creates a reactive resource that manages asynchronous data fetching and loading states, automatically tracking dependencies and providing a simple interface for reading, refreshing, and error handling. It integrates with Solid's reactivity system and Suspense boundaries.
-
-* * *
+Creates a reactive resource that manages asynchronous data fetching and loading states, automatically tracking dependencies and providing a simple interface for reading, refreshing, and error handling.
+It integrates with Solid's reactivity system and Suspense boundaries.
 
 ## Import
 
-```
+```typescript
 import { createResource } from "solid-js";
 ```
-* * *
-
 ## Type
 
-```
+```typescript
 // Without source
-
 function createResource<T, R = unknown>(
-
-  fetcher: ResourceFetcher<true, T, R>,
-
-  options?: ResourceOptions<T>
-
+	fetcher: ResourceFetcher<true, T, R>,
+	options?: ResourceOptions<T>
 ): ResourceReturn<T, R>;
 
 // With source
-
 function createResource<T, S, R = unknown>(
-
-  source: ResourceSource<S>,
-
-  fetcher: ResourceFetcher<S, T, R>,
-
-  options?: ResourceOptions<T, S>
-
+	source: ResourceSource<S>,
+	fetcher: ResourceFetcher<S, T, R>,
+	options?: ResourceOptions<T, S>
 ): ResourceReturn<T, R>;
 ```
 ### Related types
 
-```
+```typescript
 type ResourceReturn<T, R = unknown> = [Resource<T>, ResourceActions<T, R>];
 
 type Resource<T> = {
-
-  (): T | undefined;
-
-  state: "unresolved" | "pending" | "ready" | "refreshing" | "errored";
-
-  loading: boolean;
-
-  error: any;
-
-  latest: T | undefined;
-
+	(): T | undefined;
+	state: "unresolved" | "pending" | "ready" | "refreshing" | "errored";
+	loading: boolean;
+	error: any;
+	latest: T | undefined;
 };
 
 type ResourceActions<T, R = unknown> = {
-
-  mutate: (value: T | undefined) => T | undefined;
-
-  refetch: (info?: R) => Promise<T> | T | undefined;
-
+	mutate: (value: T | undefined) => T | undefined;
+	refetch: (info?: R) => Promise<T> | T | undefined;
 };
 
 type ResourceSource<S> =
-
-  | S
-
-  | false
-
-  | null
-
-  | undefined
-
-  | (() => S | false | null | undefined);
+	| S
+	| false
+	| null
+	| undefined
+	| (() => S | false | null | undefined);
 
 type ResourceFetcher<S, T, R = unknown> = (
-
-  source: S,
-
-  info: { value: T | undefined; refetching: R | boolean }
-
+	source: S,
+	info: { value: T | undefined; refetching: R | boolean }
 ) => T | Promise<T>;
 
 interface ResourceOptions<T, S = unknown> {
-
-  initialValue?: T;
-
-  name?: string;
-
-  deferStream?: boolean;
-
-  ssrLoadFrom?: "initial" | "server";
-
-  storage?: (
-
-    init: T | undefined
-
-  ) => [Accessor<T | undefined>, Setter<T | undefined>];
-
-  onHydrated?: (k: S | undefined, info: { value: T | undefined }) => void;
-
+	initialValue?: T;
+	name?: string;
+	deferStream?: boolean;
+	ssrLoadFrom?: "initial" | "server";
+	storage?: (
+		init: T | undefined
+	) => [Accessor<T | undefined>, Setter<T | undefined>];
+	onHydrated?: (k: S | undefined, info: { value: T | undefined }) => void;
 }
 ```
-* * *
-
 ## Parameters
 
 ### `source`
@@ -112,7 +72,10 @@ interface ResourceOptions<T, S = unknown> {
 - **Type:** `ResourceSource<S>`
 - **Default:** `undefined`
 
-Reactive data source evaluated before the fetcher runs. When the value is `undefined`, `null`, or `false`, the fetcher is not called. Otherwise the current value is passed as the first fetcher argument. Each change triggers the fetcher again.
+Reactive data source evaluated before the fetcher runs.
+When the value is `undefined`, `null`, or `false`, the fetcher is not called.
+Otherwise the current value is passed as the first fetcher argument.
+Each change triggers the fetcher again.
 
 ### `fetcher`
 
@@ -132,7 +95,8 @@ Configuration options for the resource.
 - **Type:** `T`
 - **Default:** `undefined`
 
-Initial value for the resource. When provided, the resource starts in "ready" state and the type excludes `undefined`.
+Initial value for the resource.
+When provided, the resource starts in "ready" state and the type excludes `undefined`.
 
 #### `name`
 
@@ -172,8 +136,6 @@ Custom storage function for the resource value, useful for persistence or custom
 
 Callback fired when the resource hydrates on the client side.
 
-* * *
-
 ## Return value
 
 - **Type:** `[Resource<T>, ResourceActions<T, R>]`
@@ -182,126 +144,102 @@ Returns a tuple containing the resource accessor and resource actions.
 
 ### `Resource`
 
-```
+```typescript
 type Resource<T> = {
-
-  (): T | undefined;
-
-  state: "unresolved" | "pending" | "ready" | "refreshing" | "errored";
-
-  loading: boolean;
-
-  error: any;
-
-  latest: T | undefined;
-
+	(): T | undefined;
+	state: "unresolved" | "pending" | "ready" | "refreshing" | "errored";
+	loading: boolean;
+	error: any;
+	latest: T | undefined;
 };
 ```
-- `state`: Current state of the resource. See the table below for state descriptions.
+- `state`: Current state of the resource.
+  See the table below for state descriptions.
 - `loading`: Indicates if the resource is currently loading.
 - `error`: Error information if the resource failed to load.
 - `latest`: The latest value of the resource.
 
-StateDescriptionLoadingErrorLatest`unresolved`Initial state, not yet fetched`false``undefined``undefined``pending`Fetching in progress`true``undefined``undefined``ready`Successfully fetched`false``undefined``T``refreshing`Refetching while keeping previous value`true``undefined``T``errored`Fetching failed`false``any``undefined`
+| State        | Description                             | Loading | Error       | Latest      |
+| ------------ | --------------------------------------- | ------- | ----------- | ----------- |
+| `unresolved` | Initial state, not yet fetched          | `false` | `undefined` | `undefined` |
+| `pending`    | Fetching in progress                    | `true`  | `undefined` | `undefined` |
+| `ready`      | Successfully fetched                    | `false` | `undefined` | `T`         |
+| `refreshing` | Refetching while keeping previous value | `true`  | `undefined` | `T`         |
+| `errored`    | Fetching failed                         | `false` | `any`       | `undefined` |
 
 ### `ResourceActions`
 
-```
+```typescript
 type ResourceActions<T, R = unknown> = {
-
-  mutate: (value: T | undefined) => T | undefined;
-
-  refetch: (info?: R) => Promise<T> | T | undefined;
-
+	mutate: (value: T | undefined) => T | undefined;
+	refetch: (info?: R) => Promise<T> | T | undefined;
 };
 ```
-- `mutate`: Function to manually overwrite the resource value without calling the fetcher. Allows you to optimistically update the resource value locally, without making a network request.
-- `refetch`: Function to re-run the fetcher without changing the source. If a parameter is provided to `refetch`, it will be passed to the fetcher's `refetching` property.
-
-* * *
+- `mutate`: Function to manually overwrite the resource value without calling the fetcher.
+  Allows you to optimistically update the resource value locally, without making a network request.
+- `refetch`: Function to re-run the fetcher without changing the source.
+  If a parameter is provided to `refetch`, it will be passed to the fetcher's `refetching` property.
 
 ## Examples
 
 ### Basic usage
 
-```
+```typescript
 const [data] = createResource(async () => {
-
-  const response = await fetch("/api/data");
-
-  return response.json();
-
+	const response = await fetch("/api/data");
+	return response.json();
 });
 
 // Access data
-
 console.log(data()); // undefined initially, then fetched data
-
 console.log(data.loading); // true during fetch
-
 console.log(data.state); // "pending" → "ready"
 ```
 ### With source
 
-```
+```typescript
 const [userId, setUserId] = createSignal(1);
 
 const [user] = createResource(userId, async (id) => {
-
-  const response = await fetch(`/api/users/${id}`);
-
-  return response.json();
-
+	const response = await fetch(`/api/users/${id}`);
+	return response.json();
 });
 
 // Automatically refetches when userId changes
-
 setUserId(2);
 ```
 ### With actions
 
-```
+```typescript
 const [posts, { refetch, mutate }] = createResource(fetchPosts);
 
 // Manual refetch
-
 await refetch();
 
 // Optimistic update
-
 mutate((posts) => [...posts, newPost]);
 ```
 ### Error handling
 
-```
+```typescript
 const [data] = createResource(async () => {
-
   const response = await fetch('/api/data');
-
   if (!response.ok) throw new Error('Failed to fetch');
-
   return response.json();
-
 });
 
 // In JSX
-
 <ErrorBoundary fallback={<div>Error loading data</div>}>
-
   <div>{data()?.title}</div>
-
 </ErrorBoundary>
 ```
 ### With initial value
 
-```
+```typescript
 const [user] = createResource(() => fetchUser(), {
-
-  initialValue: { name: "Loading...", id: 0 },
-
+	initialValue: { name: "Loading...", id: 0 },
 });
 
 // user() is never undefined
-
 console.log(user().name); // "Loading..." initially
 ```

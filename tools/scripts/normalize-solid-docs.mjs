@@ -444,12 +444,18 @@ function rewriteLocalLinks(entry, sourceToNormalizedMap) {
       }
 
       const [pathPart, anchorPart] = rawTarget.split('#');
-      const sourceCandidate = pathPart.startsWith('/')
+      let sourceCandidate = pathPart.startsWith('/')
         ? pathPart.slice(1)
         : path.posix.normalize(path.posix.join(path.posix.dirname(entry.source_path), pathPart));
 
       if (!sourceToNormalizedMap.has(sourceCandidate)) {
-        return full;
+        if (sourceToNormalizedMap.has(sourceCandidate + '.md')) {
+          sourceCandidate = sourceCandidate + '.md';
+        } else if (sourceToNormalizedMap.has(sourceCandidate + '/index.md')) {
+          sourceCandidate = sourceCandidate + '/index.md';
+        } else {
+          return full;
+        }
       }
 
       const mappedTarget = sourceToNormalizedMap.get(sourceCandidate);

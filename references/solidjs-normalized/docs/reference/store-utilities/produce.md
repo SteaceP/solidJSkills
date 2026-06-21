@@ -1,50 +1,59 @@
-# produce
+# Produce
 
-`produce` is an [Immer](https://immerjs.github.io/immer/) inspired API for Solid's Store objects that allows the store to be mutated inside the `produce` function.
+`produce` creates a store modifier that applies changes by mutating the current state through a helper proxy.
 
-```
-import { produce } from "solid-js/store"
+## Import
 
-import type { NotWrappable, Store } from "solid-js/store"
-
-function produce<T>(
-
-  fn: (state: T) => void
-
-): (
-
-  state: T extends NotWrappable ? T : Store<T>
-
-) => T extends NotWrappable ? T : Store<T>;
-```
-For use with `createStore`:
-
-```
+```ts
 import { produce } from "solid-js/store";
+```
+## Type
+
+```ts
+function produce<T>(fn: (state: T) => void): (state: T) => T;
+```
+## Parameters
+
+### `fn`
+
+- **Type:** `(state: T) => void`
+
+Function that mutates the provided proxy state.
+
+## Return value
+
+- **Type:** `(state: T) => T`
+
+Store modifier function.
+
+## Behavior
+
+- `produce` returns a function that can be passed to store setters or [`modifyMutable`](modify-mutable.md).
+- The returned modifier mutates the passed state and returns that same state.
+- The helper is primarily for store objects and nested wrappable data.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { createStore, produce } from "solid-js/store";
 
 const [state, setState] = createStore({
-
-  user: {
-
-    name: "John",
-
-    age: 30,
-
-  },
-
-  list: ["book", "pen"],
-
+	user: {
+		name: "John",
+	},
+	list: ["book"],
 });
 
 setState(
-
-  produce((state) => {
-
-    state.user.name = "Jane";
-
-    state.list.push("pencil");
-
-  })
-
+	produce((state) => {
+		state.user.name = "Jane";
+		state.list.push("pen");
+	})
 );
 ```
+## Related
+
+- [`modifyMutable`](modify-mutable.md)
+- [`reconcile`](reconcile.md)

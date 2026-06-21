@@ -1,8 +1,8 @@
-# createEffect
+# Create Effect
 
-The `createEffect` primitive creates a reactive computation. It automatically tracks reactive values, such as [signals](../../concepts/signals.md), accessed within the provided function. This function will re-run whenever any of its dependencies change.
-
-* * *
+The `createEffect` primitive creates a reactive computation.
+It automatically tracks reactive values, such as [signals](../../concepts/signals.md), accessed within the provided function.
+This function will re-run whenever any of its dependencies change.
 
 ## Execution Timing
 
@@ -10,7 +10,8 @@ The `createEffect` primitive creates a reactive computation. It automatically tr
 
 - The initial run of effects is **scheduled to occur after the current rendering phase completes**.
 - It runs after all synchronous code in a component has finished and DOM elements have been created, but **before the browser paints them on the screen**.
-- **[Refs](../../concepts/refs.md) are set** before the first run, even though DOM nodes may not yet be attached to the main document tree. This is relevant when using the [`children`](../component-apis/children.md) helper.
+- **[Refs](../../concepts/refs.md) are set** before the first run, even though DOM nodes may not yet be attached to the main document tree.
+  This is relevant when using the [`children`](../component-apis/children.md) helper.
 
 ### Subsequent Runs
 
@@ -24,46 +25,28 @@ The `createEffect` primitive creates a reactive computation. It automatically tr
 - Effects **never run during SSR**.
 - Effects also **do not run during the initial client hydration**.
 
-* * *
-
 ## Import
 
-```
+```ts
 import { createEffect } from "solid-js";
 ```
-* * *
-
 ## Type
 
-```
+```ts
 function createEffect<Next>(
-
-  fn: EffectFunction<undefined | NoInfer<Next>, Next>
-
+	fn: EffectFunction<undefined | NoInfer<Next>, Next>
 ): void;
-
 function createEffect<Next, Init = Next>(
-
-  fn: EffectFunction<Init | Next, Next>,
-
-  value: Init,
-
-  options?: { name?: string }
-
+	fn: EffectFunction<Init | Next, Next>,
+	value: Init,
+	options?: { name?: string }
 ): void;
-
 function createEffect<Next, Init>(
-
-  fn: EffectFunction<Init | Next, Next>,
-
-  value?: Init,
-
-  options?: { name?: string }
-
+	fn: EffectFunction<Init | Next, Next>,
+	value?: Init,
+	options?: { name?: string }
 ): void;
 ```
-* * *
-
 ## Parameters
 
 ### `fn`
@@ -73,7 +56,8 @@ function createEffect<Next, Init>(
 
 A function to be executed as the effect.
 
-It receives the value returned from the previous run, or the initial `value` during the first run. The value returned by `fn` is passed to the next run.
+It receives the value returned from the previous run, or the initial `value` during the first run.
+The value returned by `fn` is passed to the next run.
 
 ### `value`
 
@@ -96,110 +80,73 @@ An optional configuration object with the following properties:
 
 A name for the effect, which can be useful for identification in debugging tools like the [Solid Debugger](https://github.com/thetarnav/solid-devtools).
 
-* * *
-
 ## Return value
 
 `createEffect` does not return a value.
-
-* * *
 
 ## Examples
 
 ### Basic Usage
 
-```
+```tsx
 import { createSignal, createEffect } from "solid-js";
 
 function Counter() {
+	const [count, setCount] = createSignal(0);
 
-  const [count, setCount] = createSignal(0);
+	// Every time count changes, this effect re-runs.
+	createEffect(() => {
+		console.log("Count incremented! New value: ", count());
+	});
 
-  // Every time count changes, this effect re-runs.
-
-  createEffect(() => {
-
-    console.log("Count incremented! New value: ", count());
-
-  });
-
-  return (
-
-    <div>
-
-      <p>Count: {count()}</p>
-
-      <button onClick={() => setCount((prev) => prev + 1)}>Increment</button>
-
-    </div>
-
-  );
-
+	return (
+		<div>
+			<p>Count: {count()}</p>
+			<button onClick={() => setCount((prev) => prev + 1)}>Increment</button>
+		</div>
+	);
 }
 ```
 ### Execution Timing
 
-```
+```tsx
 import { createSignal, createEffect, createRenderEffect } from "solid-js";
 
 function Counter() {
+	const [count, setCount] = createSignal(0);
 
-  const [count, setCount] = createSignal(0);
+	// This is part of the component's synchronous execution.
+	console.log("Hello from counter");
 
-  // This is part of the component's synchronous execution.
+	// This effect is scheduled to run after the initial render is complete.
+	createEffect(() => {
+		console.log("Effect:", count());
+	});
 
-  console.log("Hello from counter");
+	// By contrast, a render effect runs synchronously during the render phase.
+	createRenderEffect(() => {
+		console.log("Render effect:", count());
+	});
 
-  // This effect is scheduled to run after the initial render is complete.
+	// Setting a signal during the render phase re-runs render effects, but not effects, which are
+	// still scheduled.
+	setCount(1);
 
-  createEffect(() => {
-
-    console.log("Effect:", count());
-
-  });
-
-  // By contrast, a render effect runs synchronously during the render phase.
-
-  createRenderEffect(() => {
-
-    console.log("Render effect:", count());
-
-  });
-
-  // Setting a signal during the render phase re-runs render effects, but not effects, which are
-
-  // still scheduled.
-
-  setCount(1);
-
-  // A microtask is scheduled to run after the current synchronous code (the render phase) finishes.
-
-  queueMicrotask(() => {
-
-    // Now that rendering is complete, signal updates will trigger effects immediately.
-
-    setCount(2);
-
-  });
-
+	// A microtask is scheduled to run after the current synchronous code (the render phase) finishes.
+	queueMicrotask(() => {
+		// Now that rendering is complete, signal updates will trigger effects immediately.
+		setCount(2);
+	});
 }
 
 // Output:
-
 // Hello from counter
-
 // Render effect: 0
-
 // Render effect: 1
-
 // Effect: 1
-
 // Render effect: 2
-
 // Effect: 2
 ```
-* * *
-
 ## Related
 
 - [`createRenderEffect`](../secondary-primitives/create-render-effect.md)

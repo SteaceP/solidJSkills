@@ -1,23 +1,52 @@
-# observable
+# Observable
 
+`observable` creates an Observable-compatible object from a Solid accessor.
+
+## Import
+
+```ts
+import { observable } from "solid-js";
 ```
-import { observable } from "solid-js"
+## Type
 
-function observable<T>(input: () => T): Observable<T>
+```ts
+function observable<T>(input: () => T): Observable<T>;
 ```
-This method takes a signal and produces an Observable. You can consume it from another Observable library of your choice, typically with the `from` operator.
+## Parameters
 
+### `input`
+
+- **Type:** `() => T`
+- **Required:** Yes
+
+Accessor used as the observable source.
+
+## Return value
+
+- **Type:** `Observable<T>`
+
+Returns an object with `subscribe()` and `[Symbol.observable]()` that returns the same object.
+
+## Behavior
+
+- `subscribe()` accepts either a function observer or an object observer with `next`.
+- Each subscription creates an effect over the accessor and returns an object with `unsubscribe()`.
+- If subscription happens inside an owned Solid scope, cleanup is also registered on that owner.
+
+## Examples
+
+### Convert an accessor to an Observable-compatible source
+
+```ts
+import { createSignal, observable } from "solid-js";
+import { from } from "rxjs";
+
+const [value] = createSignal(0);
+
+const value$ = from(observable(value));
+
+value$.subscribe((next) => console.log(next));
 ```
-// How to integrate rxjs with a Solid signal
+## Related
 
-import { observable } from "solid-js"
-
-import { from } from "rxjs"
-
-const [s, set] = createSignal(0)
-
-const obsv$ = from(observable(s))
-
-obsv$.subscribe((v) => console.log(v))
-```
-You can also use `from` without rxjs; check out this [page](from.md).
+- [`from`](from.md)

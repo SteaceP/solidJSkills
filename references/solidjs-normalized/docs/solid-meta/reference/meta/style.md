@@ -1,56 +1,54 @@
 # Style
 
-`Style` is a component that adds the [`style`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/style) element to your document's `head`.
+`Style` adds a [`<style>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/style) element for CSS rules that apply to the document.
 
-```
+## Import
+
+```tsx
 import { Style } from "@solidjs/meta";
-
-<Style>
-
-  {`
-
-    body {
-
-      background-color: #000;
-
-    }
-
-  `}
-
-</Style>;
 ```
-* * *
+## Type
 
-## Usage
-
-### Adding `style` tag
-
-The `Style` component can add CSS to style elements within your application. It is recommended to add styles in an external stylesheet and use a `Link` instead, rather than using this component, however.
-
-Styles within the `Style` component are not scoped.
-
+```tsx
+const Style: Component<JSX.StyleHTMLAttributes<HTMLStyleElement>>;
 ```
+## Props
+
+Accepts attributes for [`<style>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/style).
+
+### `children`
+
+- **Type:** `JSX.Element`
+- **Optional:** Yes
+
+Content rendered inside the `style` element.
+
+## Behavior
+
+- Registers a `style` tag with `close: true`.
+- Non-cascading tags can add one document-head element per active instance.
+- Requires [`MetaProvider`](metaprovider.md) in the component tree.
+
+## Examples
+
+### Basic usage
+
+```tsx
 import { MetaProvider, Style } from "@solidjs/meta";
 
 export default function Root() {
-
-  return (
-
-    <MetaProvider>
-
-      <Style>{`
-
+	return (
+		<MetaProvider>
+			<Style>{`
           p {
-
             color: #26b72b;
-
           }
-
         `}</Style>
-
-    </MetaProvider>
-
-  );
-
+		</MetaProvider>
+	);
 }
 ```
+## Related
+
+- [`MetaProvider`](metaprovider.md)
+- [`useHead`](use-head.md)

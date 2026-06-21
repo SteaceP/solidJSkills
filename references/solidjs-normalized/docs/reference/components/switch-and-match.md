@@ -1,80 +1,112 @@
-# &lt;Switch&gt; / &lt;Match&gt;
+# Switch And Match
 
-Useful for when there are more than 2 mutual exclusive conditions. It is a more flexible version of the if-else-if-else-if-else-... chain.
+`<Switch>` renders the first child `<Match>` whose `when` prop is truthy. `<Match>` can render JSX directly or accept a function child.
 
+## Import
+
+```ts
+import { Match, Switch } from "solid-js";
 ```
-import { Switch, Match } from "solid-js"
+## Type
 
-import type { MatchProps, JSX } from "solid-js"
+```ts
+type Accessor<T> = () => T;
 
 function Switch(props: {
+	fallback?: JSX.Element;
+	children: JSX.Element;
+}): JSX.Element;
 
-  fallback?: JSX.Element
+function Match<T>(props: {
+	when: T | undefined | null | false;
+	keyed?: false;
+	children: JSX.Element | ((item: Accessor<NonNullable<T>>) => JSX.Element);
+}): JSX.Element;
 
-  children: JSX.Element
-
-}): () => JSX.Element
-
-type MatchProps<T> = {
-
-  when: T | undefined | null | false
-
-  children: JSX.Element | ((item: T) => JSX.Element)
-
-}
-
-function Match<T>(props: MatchProps<T>)
+function Match<T>(props: {
+	when: T | undefined | null | false;
+	keyed: true;
+	children: JSX.Element | ((item: NonNullable<T>) => JSX.Element);
+}): JSX.Element;
 ```
-A super simple implementation of this component would be:
+## `<Switch>` props
 
+### `fallback`
+
+- **Type:** `JSX.Element`
+
+Content rendered when no child `<Match>` has a truthy `when` value.
+
+### `children`
+
+- **Type:** `JSX.Element`
+
+Child `<Match>` elements.
+
+## `<Match>` props
+
+### `when`
+
+- **Type:** `T | undefined | null | false`
+
+Condition value for the branch.
+
+### `keyed`
+
+- **Type:** `boolean`
+
+Controls whether function children receive the current value directly instead of an accessor.
+
+### `children`
+
+- **Type:** `JSX.Element | ((item: Accessor<NonNullable<T>>) => JSX.Element) | ((item: NonNullable<T>) => JSX.Element)`
+
+Content rendered when the branch matches.
+
+## Return value
+
+- **Type:** `JSX.Element`
+
+Returns the selected branch or the `fallback` content.
+
+## Behavior
+
+- `<Switch>` evaluates its child `<Match>` elements in order and renders only the first truthy branch.
+- If no branch matches, `<Switch>` renders `fallback`.
+- Function children in `<Match>` are wrapped in [`untrack`](../reactive-utilities/untrack.md).
+- With `keyed={false}`, function children in `<Match>` receive an accessor that can only be read while that branch remains selected. Replacing one truthy value with another truthy value does not recreate the child block.
+- With `keyed={true}`, function children receive the current value directly, and changing the `when` value recreates the child block even when it remains truthy.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { createSignal } from "solid-js";
+
+const [status, setStatus] = createSignal<"loading" | "success" | "error">(
+	"loading"
+);
+
+<>
+	<button onClick={() => setStatus("loading")}>Loading</button>
+	<button onClick={() => setStatus("success")}>Success</button>
+	<button onClick={() => setStatus("error")}>Error</button>
+
+	<Switch fallback={<p>Unknown status</p>}>
+		<Match when={status() === "loading"}>
+			<p>Loading...</p>
+		</Match>
+		<Match when={status() === "success"}>
+			<p>Saved</p>
+		</Match>
+		<Match when={status() === "error"}>
+			<p>Failed</p>
+		</Match>
+	</Switch>
+</>;
 ```
-function Switch(props) {
+## Related
 
-  let children = props.children
-
-  if (!Array.isArray(children)) children = [children]
-
-  for (let i = 0; i < children.length; i++) {
-
-    const child = children[i]
-
-    if (child.props.when) return child
-
-  }
-
-  return props.fallback
-
-}
-```
-For example, it can be used to perform basic routing:
-
-```
-<Switch fallback={<div>Not Found</div>}>
-
-  <Match when={state.route === "home"}>
-
-    <Home />
-
-  </Match>
-
-  <Match when={state.route === "settings"}>
-
-    <Settings />
-
-  </Match>
-
-</Switch>
-```
-Match also supports function children to serve as keyed flow.
-
-* * *
-
-## Props
-
-### Switch
-
-NameTypeDefaultDescription`fallback``JSX.Element``undefined`The fallback element to render if no `Match` component has a truthy `when` prop.
-
-### Match
-
-NameTypeDefaultDescription`when``T | undefined | null | false``undefined`The condition to check. If it is truthy, the `children` will be rendered.
+- [`<Show>`](show.md)
+- [`untrack`](../reactive-utilities/untrack.md)

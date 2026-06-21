@@ -1,61 +1,83 @@
-# createMutable
+# Create Mutable
 
-`createMutable` creates a new mutable Store proxy object that provides a way to selectively trigger updates only when values change.
+`createMutable` creates a mutable store proxy.
 
-By intercepting property access, it allows automatic tracking of deep nesting via proxy making it useful for integrating external systems or serving as a compatibility layer with frameworks like MobX or Vue.
+## Import
 
+```ts
+import { createMutable } from "solid-js/store";
 ```
-import { createMutable } from "solid-js/store"
+## Type
 
-import type { Store, StoreNode } from "solid-js/store"
-
-function createMutable<T extends StoreNode>(state: T | Store<T>): Store<T>;
+```ts
+function createMutable<T extends StoreNode>(
+	state: T,
+	options?: { name?: string }
+): T;
 ```
-It's important to recognize that a mutable state, which can be passed around and modified anywhere, may complicate the code structure and increase the risk of breaking unidirectional flow.
+## Parameters
 
-For a more robust alternative, it is generally recommended to use `createStore` instead. Additionally, the [`produce`](produce.md) utility can provide many of these same benefits without the associated downsides.
+### `state`
 
-```
-import { createMutable } from "solid-js/store"
+- **Type:** `T`
+
+Initial mutable state.
+
+### `options`
+
+#### `name`
+
+- **Type:** `string`
+
+Debug name used by development tooling.
+
+## Return value
+
+- **Type:** `T`
+
+Mutable store proxy.
+
+## Behavior
+
+- `createMutable` creates mutable shared state through a reactive proxy. Property reads and writes go through that proxy, and nested property access is reactive.
+- Writes, deletes, and array mutator methods are batched through the proxy while updating the store in place.
+- `createMutable` exposes reads and writes through the same proxy instead of separating them into a getter and setter.
+- Getters and setters defined on the initial object remain available on the mutable store.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { createMutable } from "solid-js/store";
 
 const state = createMutable({
-
-  someValue: 0,
-
-  list: [],
-
+	someValue: 0,
+	list: [],
 });
-
-// read value
-
-state.someValue;
-
-// set value
 
 state.someValue = 5;
-
-state.list.push(anotherValue);
+state.list.push("item");
 ```
-Mutables support setters along with getters.
+### Getter and setter
 
-```
+```tsx
+import { createMutable } from "solid-js/store";
+
 const user = createMutable({
-
-  firstName: "John",
-
-  lastName: "Smith",
-
-  get fullName() {
-
-    return `${this.firstName} ${this.lastName}`;
-
-  },
-
-  set setFullName(value) {
-
-    [this.firstName, this.lastName] = value.split(" ");
-
-  },
-
+	firstName: "John",
+	lastName: "Smith",
+	get fullName() {
+		return `${this.firstName} ${this.lastName}`;
+	},
+	set fullName(value) {
+		[this.firstName, this.lastName] = value.split(" ");
+	},
 });
+
+user.fullName = "Jane Doe";
 ```
+## Related
+
+- [`modifyMutable`](modify-mutable.md)
+- [`createStore`](create-store.md)

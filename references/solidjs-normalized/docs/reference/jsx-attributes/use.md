@@ -1,115 +1,60 @@
-# use:*
+# Use
 
-Custom directives attach reusable behavior to DOM elements, acting as syntactic sugar over `ref`. They’re ideal for complex DOM interactions like scrolling, tooltips, or form handling, which are cumbersome to repeat in JSX.
+`use:*` attaches a directive function to a native element.
 
-A directive is a function with the following signature
+## Syntax
 
+```tsx
+<input use:model={[value, setValue]} />
 ```
-function directive(element: HTMLElement, accessor: Accessor<any>): void;
+## Type
+
+```ts
+type Accessor<T> = () => T;
+
+function directive(element: Element, accessor?: Accessor<any>): void;
 ```
-Directive functions are called at render time but before being added to the DOM. You can do whatever you'd like in them including create signals, effects, register clean-up etc.
+## Value
 
-* * *
+- **Type:** directive argument
 
-## Example
+The directive reads the value through an accessor. Without an explicit value, the accessor returns `true`.
 
-A `model` directive for two-way data binding
+## Behavior
 
-```
-import type { Accessor, Signal } from "solid-js";
+- `use:name={value}` passes the element and an accessor for `value` to the directive.
+- Without an explicit value, the accessor returns `true`.
+- The directive runs during rendering in the current owner, before the element is connected to the DOM, so it can create effects and register cleanup.
+- `use:*` works only on native elements, including custom elements, and is not forwarded through user-defined components.
 
-function model(element: HTMLInputElement, value: Accessor<Signal<string>>) {
+## Examples
 
-  const [field, setField] = value();
+### Basic usage
 
-  createRenderEffect(() => (element.value = field()));
+```tsx
+function model(element, value) {
+	const [field, setField] = value();
+	const onInput = ({ currentTarget }) => setField(currentTarget.value);
 
-  element.addEventListener("input", ({ target }) => setField(target.value));
-
+	createRenderEffect(() => (element.value = field()));
+	element.addEventListener("input", onInput);
+	onCleanup(() => element.removeEventListener("input", onInput));
 }
 
 const [name, setName] = createSignal("");
 
 <input type="text" use:model={[name, setName]} />;
 ```
-* * *
+:::note
+When using TypeScript, custom directives may require extending Solid's JSX directive typings:
 
-## TypeScript Support
-
-To type custom directives, extend the `DirectiveFunctions` interface
-
-```
+```ts
 declare module "solid-js" {
-
-  namespace JSX {
-
-    interface DirectiveFunctions {
-
-      model: typeof model;
-
-    }
-
-  }
-
+	namespace JSX {
+		interface Directives {
+			model: [Accessor<string>, Setter<string>];
+		}
+	}
 }
 ```
-If you just want to constrain the second argument to the directive function, you can extend the older `Directives` interface
-
-```
-declare module "solid-js" {
-
-  namespace JSX {
-
-    interface Directives {
-
-      model: Signal<string>;
-
-    }
-
-  }
-
-}
-```
-* * *
-
-## Avoiding Tree-Shaking
-
-When importing a directive `d` from another module and using it only as `use:d`, TypeScript (via [babel-preset-typescript](https://babeljs.io/docs/babel-preset-typescript)) may remove the import, as it doesn’t recognize `use:d` as a reference to `d`. To prevent this:
-
-1. Use the `onlyRemoveTypeImports: true` option in `babel-preset-typescript`. For `vite-plugin-solid`, add this to `vite.config.ts`
-   
-   ```
-   import solidPlugin from "vite-plugin-solid";
-   
-   
-   
-   
-   export default {
-   
-     plugins: [
-   
-       solidPlugin({
-   
-         typescript: { onlyRemoveTypeImports: true }
-   
-       })
-   
-     ],
-   
-   };
-   ```
-   Note: This requires consistent use of `export type` and `import type` in your codebase to avoid issues.
-2. Add a fake access like `false && d;` in the module
-   
-   ```
-   import { model } from "./directives";
-   
-   false && model; // Prevents tree-shaking
-   
-   <input type="text" use:model={[name, setName]} />;
-   ```
-   This is removed by bundlers like Terser, unlike a plain `model;` which may remain in the bundle.
-
-Limitations
-
-Directives only work with native HTML elements (HTML/SVG/MathML/Custom Elements). Directives are not forwarded and **won't work in user defined components**, such as `<MyComponent use:myinput={[..]}/>` [see also](https://github.com/solidjs/solid/discussions/722)
+:::

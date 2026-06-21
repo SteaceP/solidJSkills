@@ -1,41 +1,26 @@
-# json
+# Json
 
-The `json` function returns a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object that contains the provided data. It is intended for sending JSON data from a [query](../data-apis/query.md) or [action](../../concepts/actions.md) while also allowing configuration of query revalidation.
-
-This works both in client and server (e.g., using a server function) environments.
-
-* * *
+`json` is a response helper that returns a returns a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) with a JSON body and a `customBody` reader for the original data.
+It is intended for sending JSON data from a [query](../data-apis/query.md) or [action](../../concepts/actions.md) while also allowing configuration of query revalidation.
 
 ## Import
 
-```
+```ts
 import { json } from "@solidjs/router";
 ```
-* * *
-
 ## Type
 
-```
+```ts
 function json<T>(
-
-  data: T,
-
-  init: {
-
-    revalidate?: string | string[];
-
-    headers?: HeadersInit;
-
-    status?: number;
-
-    statusText?: string;
-
-  } = {}
-
+	data: T,
+	init: {
+		revalidate?: string | string[];
+		headers?: HeadersInit;
+		status?: number;
+		statusText?: string;
+	} = {}
 ): CustomResponse<T>;
 ```
-* * *
-
 ## Parameters
 
 ### `data`
@@ -43,21 +28,24 @@ function json<T>(
 - **Type:** `T`
 - **Required:** Yes
 
-The data to be serialized as JSON in the response body. It must be a value that can be serialized with [`JSON.stringify`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
+The data to be serialized as JSON in the response body.
+It must be a value that can be serialized with [`JSON.stringify`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
 
 ### `init`
 
-- **Type:** `{ revalidate?: string | string[]; headers?: HeadersInit; status?: number; statusText?: string; }`
+- **Type:** `RouterResponseInit`
+- **Default:** `{}`
 - **Required:** No
 
-An optional configuration object with the following properties:
+A configuration object with the following properties:
 
-#### `revalidate`
+### `revalidate`
 
 - **Type:** `string | string[]`
 - **Required:** No
 
-A query key or an array of query keys to revalidate. Passing an empty array (`[]`) disables query revalidation entirely.
+A query key or an array of query keys to revalidate.
+Passing an empty array (`[]`) disables query revalidation entirely.
 
 #### `headers`
 
@@ -71,7 +59,8 @@ An object containing any headers to be sent with the response.
 - **Type:** `number`
 - **Required:** No
 
-The HTTP status code of the response. Defaults to [`200 OK`](http://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/200).
+The HTTP status code of the response.
+Defaults to [`200 OK`](http://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/200).
 
 #### `statusText`
 
@@ -80,81 +69,64 @@ The HTTP status code of the response. Defaults to [`200 OK`](http://developer.mo
 
 The status text associated with the status code.
 
-* * *
+## Return value
+
+- **Type:** `CustomResponse<T>`
+
+Returns a `Response` object with a `customBody` function that returns `data`.
+
+## Behavior
+
+- Sets the `Content-Type` header to `"application/json"`.
+- Serializes `data` with `JSON.stringify`.
+- When `init.revalidate` is defined, `json` writes it to the `X-Revalidate` header with `toString()`.
+- Values from `init.headers` are preserved unless overwritten by `json`.
 
 ## Examples
 
 ### Invalidating Data After a Mutation
 
-```
+```tsx
 import { For } from "solid-js";
-
 import { query, action, json, createAsync } from "@solidjs/router";
 
 const getCurrentUserQuery = query(async () => {
-
-  return await fetch("/api/me").then((response) => response.json());
-
+	return await fetch("/api/me").then((response) => response.json());
 }, "currentUser");
 
 const getPostsQuery = query(async () => {
-
-  return await fetch("/api/posts").then((response) => response.json());
-
+	return await fetch("/api/posts").then((response) => response.json());
 }, "posts");
 
 const createPostAction = action(async (formData: FormData) => {
+	const title = formData.get("title")?.toString();
+	const newPost = await fetch("/api/posts", {
+		method: "POST",
+		body: JSON.stringify({ title }),
+	}).then((response) => response.json());
 
-  const title = formData.get("title")?.toString();
-
-  const newPost = await fetch("/api/posts", {
-
-    method: "POST",
-
-    body: JSON.stringify({ title }),
-
-  }).then((response) => response.json());
-
-  // Only revalidate the "posts" query.
-
-  return json(newPost, { revalidate: "posts" });
-
+	// Only revalidate the "posts" query.
+	return json(newPost, { revalidate: "posts" });
 }, "createPost");
 
 function Posts() {
+	const currentUser = createAsync(() => getCurrentUserQuery());
+	const posts = createAsync(() => getPostsQuery());
 
-  const currentUser = createAsync(() => getCurrentUserQuery());
-
-  const posts = createAsync(() => getPostsQuery());
-
-  return (
-
-    <div>
-
-      <p>Welcome back {currentUser()?.name}</p>
-
-      <ul>
-
-        <For each={posts()}>{(post) => <li>{post.title}</li>}</For>
-
-      </ul>
-
-      <form action={createPostAction} method="post">
-
-        <input name="title" />
-
-        <button>Create Post</button>
-
-      </form>
-
-    </div>
-
-  );
-
+	return (
+		<div>
+			<p>Welcome back {currentUser()?.name}</p>
+			<ul>
+				<For each={posts()}>{(post) => <li>{post.title}</li>}</For>
+			</ul>
+			<form action={createPostAction} method="post">
+				<input name="title" />
+				<button>Create Post</button>
+			</form>
+		</div>
+	);
 }
 ```
-* * *
-
 ## Related
 
 - [`query`](../data-apis/query.md)

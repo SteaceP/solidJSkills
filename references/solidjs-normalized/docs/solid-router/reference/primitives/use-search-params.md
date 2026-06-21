@@ -1,76 +1,75 @@
-# useSearchParams
+# Use Search Params
 
-The `useSearchParams` function reads the URL query parameters for the current route and provides a function to update them.
-
-* * *
+`useSearchParams` returns current query parameters and a setter for the URL search string.
 
 ## Import
 
-```
+```ts
 import { useSearchParams } from "@solidjs/router";
 ```
-* * *
-
 ## Type
 
-```
-function useSearchParams<T extends Record<string, string | string[]>>(): [
+```ts
+type SearchParams = Record<string, string | string[] | undefined>;
 
-  Partial<T>,
+type SetSearchParams = Record<
+	string,
+	string | string[] | number | number[] | boolean | boolean[] | null | undefined
+>;
 
-  (params: SetSearchParams, options?: Partial<NavigateOptions>) => void,
-
+function useSearchParams<T extends SearchParams>(): [
+	Partial<T>,
+	(params: SetSearchParams, options?: Partial<NavigateOptions>) => void,
 ];
 ```
-* * *
-
 ## Parameters
 
 `useSearchParams` takes no arguments.
 
-* * *
-
 ## Return value
 
-- **Type:** `[ Partial<T>, (params: SetSearchParams, options?: Partial<NavigateOptions>) => void ]`
+`useSearchParams` returns a tuple with the following:
 
-`useSearchParams` returns an array with two items.
+### `params`
 
-The first item is a reactive object containing the current query parameters. Accessing a property within a tracking scope registers a dependency, causing the computation to re-run when the parameter changes. Values are always strings.
+- **Type:** `Partial<T>`
 
-The second item is a function that updates the query string. It merges the object provided as its first argument with the current query parameters. Passing an empty string (`""`), an empty array (`[]`), `undefined`, or `null` as a value removes the key. It accepts the same options as [`useNavigate`](use-navigate.md) as the second parameter. By default, the `resolve` and `scroll` options are set to `false`.
+Reactive object containing the current query parameters.
 
-* * *
+### `setParams`
+
+- **Type:** `(params: SetSearchParams, options?: Partial<NavigateOptions>) => void`
+
+Function that merges values into the current search string, then navigates to the result.
+
+## Behavior
+
+- New values are merged with [`useLocation`](use-location.md)'s `search`.
+- Keys are deleted when the new value is `null`, `undefined`, an empty string, or an empty array.
+- Array values append each item. Other values set the key to `String(value)`.
+- The current hash is preserved after the merged search string.
+- Navigation uses `scroll: false` and `resolve: false` unless those options are overridden.
 
 ## Examples
 
 ### Basic usage
 
-```
+```tsx
 import { useSearchParams } from "@solidjs/router";
 
 function Paginator() {
+	const [params, setParams] = useSearchParams();
 
-  const [params, setParams] = useSearchParams();
+	const page = () => Number(params.page || "1");
 
-  const page = () => Number(params.page || "1");
-
-  return (
-
-    <div>
-
-      <span>Current Page: {page()}</span>
-
-      <button onClick={() => setParams({ page: page() + 1 })}>Next</button>
-
-    </div>
-
-  );
-
+	return (
+		<div>
+			<span>Current Page: {page()}</span>
+			<button onClick={() => setParams({ page: page() + 1 })}>Next</button>
+		</div>
+	);
 }
 ```
-* * *
-
 ## Related
 
 - [`useParams`](use-params.md)

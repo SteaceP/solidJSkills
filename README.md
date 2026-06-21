@@ -56,6 +56,35 @@ If you prefer to configure manually, see the [GEMINI.md](GEMINI.md) file for det
 
 ## Setup with Other IDEs
 
+### Claude Code (CLI)
+
+#### Option A: Automatic Discovery (Project Scope)
+This repository includes a project-scoped `.mcp.json` file at the root. When you run Claude Code inside this project directory, it will automatically detect and load the `solidjskills` MCP server.
+*(Note: Make sure you run `npm install` inside the `mcp-server` directory first!)*
+
+#### Option B: Global Configuration (User Scope)
+If you want to use the `solidjskills` MCP server in Claude Code across all your projects:
+
+**Method 1: Using the Claude CLI**
+Run the following command:
+```bash
+claude mcp add solidjskills node /ABSOLUTE/PATH/TO/solidJSkills/mcp-server/src/index.js --scope user
+```
+
+**Method 2: Manual Config**
+Add the server definition to your `~/.claude.json` file:
+```json
+{
+  "mcpServers": {
+    "solidjskills": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/TO/solidJSkills/mcp-server/src/index.js"]
+    }
+  }
+}
+```
+*(Make sure to replace `/ABSOLUTE/PATH/TO/...` with the actual path to the cloned repository on your machine)*
+
 ### Windsurf / Cascade
 
 Add this to your `~/.codeium/windsurf/mcp_config.json`:

@@ -1,29 +1,20 @@
-# createRoot
+# Create Root
 
 The `createRoot` function creates a new owned context, which requires explicit disposal of computations it owns.
 
-* * *
-
 ## Import
 
-```
+```ts
 import { createRoot } from "solid-js";
 ```
-* * *
-
 ## Type
 
-```
+```ts
 function createRoot<T>(
-
-  fn: (dispose: () => void) => T,
-
-  detachedOwner?: Owner
-
+	fn: (dispose: () => void) => T,
+	detachedOwner?: Owner
 ): T;
 ```
-* * *
-
 ## Parameters
 
 ### `fn`
@@ -31,9 +22,11 @@ function createRoot<T>(
 - **Type:** `(dispose: () => void) => T`
 - **Required:** Yes
 
-The function executes within a newly created owned context. The computations created within this function are managed by the root and will only be disposed of when the provided `dispose` function is called.
+The function executes within a newly created owned context.
+The computations created within this function are managed by the root and will only be disposed of when the provided `dispose` function is called.
 
-If a function is passed without a `dispose` parameter, an unowned root is created. In this case, the computations are not managed for disposal, which may lead to memory leaks.
+If a function is passed without a `dispose` parameter, an unowned root is created.
+In this case, the computations are not managed for disposal, which may lead to memory leaks.
 
 This function itself does not track dependencies and only runs once.
 
@@ -42,108 +35,76 @@ This function itself does not track dependencies and only runs once.
 - **Type:** `Owner`
 - **Required:** No
 
-An optional owner that establishes the root's position in the ownership hierarchy. When provided, the root becomes owned by this owner and inherits its contextual state (such as [contexts](../../concepts/context.md)).
-
-* * *
+An optional owner that establishes the root's position in the ownership hierarchy.
+When provided, the root becomes owned by this owner and inherits its contextual state (such as [contexts](../../concepts/context.md)).
 
 ## Return Value
 
 `createRoot` returns the value returned by the `fn` function.
 
-* * *
-
 ## Examples
 
 ### Basic Usage
 
-```
+```ts
 import { createSignal, createEffect, createRoot } from "solid-js";
 
 function createCounter(initial = 0) {
+	const [count, setCount] = createSignal(initial);
 
-  const [count, setCount] = createSignal(initial);
+	createEffect(() => {
+		console.log(`Count changed, new value: ${count()}`);
+	});
 
-  createEffect(() => {
+	function increment() {
+		setCount((c) => c + 1);
+	}
 
-    console.log(`Count changed, new value: ${count()}`);
+	function reset() {
+		setCount(initial);
+	}
 
-  });
-
-  function increment() {
-
-    setCount((c) => c + 1);
-
-  }
-
-  function reset() {
-
-    setCount(initial);
-
-  }
-
-  return { count, increment, reset };
-
+	return { count, increment, reset };
 }
 
 test("createCounter works correctly", () => {
+	createRoot((dispose) => {
+		const { count, increment, reset } = createCounter(10);
 
-  createRoot((dispose) => {
+		expect(count()).toBe(10);
+		increment();
+		expect(count()).toBe(11);
+		reset();
+		expect(count()).toBe(10);
 
-    const { count, increment, reset } = createCounter(10);
-
-    expect(count()).toBe(10);
-
-    increment();
-
-    expect(count()).toBe(11);
-
-    reset();
-
-    expect(count()).toBe(10);
-
-    dispose();
-
-  });
-
+		dispose();
+	});
 });
 ```
 ### Returning Values
 
-```
+```ts
 import { createRoot, createSignal, onCleanup } from "solid-js";
 
 const counter = createRoot((dispose) => {
+	const [count, setCount] = createSignal(0);
 
-  const [count, setCount] = createSignal(0);
+	onCleanup(() => {
+		console.log("Dispose was called!");
+	});
 
-  onCleanup(() => {
-
-    console.log("Dispose was called!");
-
-  });
-
-  return {
-
-    value: count,
-
-    increment: () => setCount((c) => c + 1),
-
-    dispose,
-
-  };
-
+	return {
+		value: count,
+		increment: () => setCount((c) => c + 1),
+		dispose,
+	};
 });
 
 console.log(counter.value()); // 0
-
 counter.increment();
-
 console.log(counter.value()); // 1
-
 counter.dispose(); // Logs "Dispose was called!"
 ```
-* * *
-
 ## Related
 
 - [`render`](../rendering/render.md)

@@ -1,30 +1,44 @@
-# GET
+# Get
 
-`GET` helps to create a server function which is accessed via an [HTTP GET request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET). When this function is called, arguments are serialized into the URL, thus allowing the use of [HTTP cache-control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) headers.
+`GET` returns the `.GET` property from a function.
 
-For example, `GET` can be used to make a streaming promise with a 60 second cache life:
+## Import
 
-```
-import { json } from "@solidjs/router";
-
+```tsx
 import { GET } from "@solidjs/start";
-
-const hello = GET(async (name: string) => {
-
-  "use server";
-
-  return json(
-
-    { hello: new Promise<string>((r) => setTimeout(() => r(name), 1000)) },
-
-    { headers: { "cache-control": "max-age=60" } }
-
-  );
-
-});
 ```
-* * *
+## Type
 
+```tsx
+function GET<T extends (...args: any[]) => any>(
+	fn: T
+): (...args: Parameters<T>) => ReturnType<T>;
+```
 ## Parameters
 
-`GET<T extends (...args: any[]) => any>(fn: T): (...args: Parameters<T>) => ReturnType<T>`
+### `fn`
+
+- **Type:** `T extends (...args: any[]) => any`
+- **Required:** Yes
+
+Function with a `GET` property.
+
+## Return value
+
+- **Type:** `(...args: Parameters<T>) => ReturnType<T>`
+
+Returns `fn.GET`.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { GET } from "@solidjs/start";
+
+const getMessage = Object.assign(async () => "hello", {
+	GET: async () => "hello",
+});
+
+const handler = GET(getMessage);
+```

@@ -1,34 +1,41 @@
-# getServerFunctionMeta
+# Get Server Function Meta
 
-`getServerFunctionMeta` returns a function-specific id string, that is stable across all instances when server functions are run in parallel on multiple CPU cores or workers.
+`getServerFunctionMeta` reads server function metadata from the current request event locals.
 
-This `id` property can and *will* change between builds.
+## Import
 
-```
+```tsx
 import { getServerFunctionMeta } from "@solidjs/start";
-
-// or some in-memory db
-
-const appCache: any = globalThis;
-
-const counter = async () => {
-
-  "use server";
-
-  const { id } = getServerFunctionMeta()!;
-
-  const key = `counter_${id}`;
-
-  appCache[key] = appCache[key] ?? 0;
-
-  appCache[key]++;
-
-  return appCache[key] as number;
-
-};
 ```
-* * *
+## Type
 
+```tsx
+interface ServerFunctionMeta {
+	id: string;
+}
+
+function getServerFunctionMeta(): ServerFunctionMeta | undefined;
+```
 ## Parameters
 
-`getServerFunctionMeta(): { id: string }`
+`getServerFunctionMeta` takes no arguments.
+
+## Return value
+
+- **Type:** `ServerFunctionMeta | undefined`
+
+Returns `getRequestEvent()?.locals.serverFunctionMeta`.
+
+## Behavior
+
+- When there is no request event, `getServerFunctionMeta` returns `undefined`.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { getServerFunctionMeta } from "@solidjs/start";
+
+const meta = getServerFunctionMeta();
+```

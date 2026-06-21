@@ -1,38 +1,148 @@
 # Router
 
-The `Router` component is a top level component that manages the routing of your application. There is an optional `root` prop that can be used to wrap the entire application in a layout component, which will not be updated when the page changes.
+`Router` is the browser router component that provides routing context for route definitions and router primitives.
 
+## Import
+
+```tsx
+import { Router } from "@solidjs/router";
 ```
+## Type
+
+```tsx
+type RouterProps = BaseRouterProps & {
+	url?: string;
+	actionBase?: string;
+	explicitLinks?: boolean;
+	preload?: boolean;
+};
+
+type BaseRouterProps = {
+	base?: string;
+	root?: Component<RouteSectionProps>;
+	rootPreload?: RoutePreloadFunc;
+	singleFlight?: boolean;
+	children?: JSX.Element | RouteDefinition | RouteDefinition[];
+	transformUrl?: (url: string) => string;
+	rootLoad?: RoutePreloadFunc;
+};
+
+function Router(props: RouterProps): JSX.Element;
+```
+## Props
+
+### `children`
+
+- **Type:** `JSX.Element | RouteDefinition | RouteDefinition[]`
+- **Optional:** Yes
+
+Route definitions rendered by the router.
+
+### `base`
+
+- **Type:** `string`
+- **Default:** `""`
+- **Optional:** Yes
+
+Base path used when creating route branches.
+
+### `root`
+
+- **Type:** `Component<RouteSectionProps>`
+- **Optional:** Yes
+
+Component rendered around matched routes.
+
+### `rootPreload`
+
+- **Type:** `RoutePreloadFunc`
+- **Optional:** Yes
+
+Preload function called for the root route context.
+
+### `singleFlight`
+
+- **Type:** `boolean`
+- **Default:** `true`
+- **Optional:** Yes
+
+Controls the router context `singleFlight` setting.
+
+### `transformUrl`
+
+- **Type:** `(url: string) => string`
+- **Optional:** Yes
+
+Function applied to the location pathname before route matching.
+
+### `url`
+
+- **Type:** `string`
+- **Optional:** Yes
+
+Initial URL used by the server-side static router path.
+
+### `actionBase`
+
+- **Type:** `string`
+- **Default:** `"/_server"`
+- **Optional:** Yes
+
+Base path used by native form action handling.
+
+### `explicitLinks`
+
+- **Type:** `boolean`
+- **Default:** `false`
+- **Optional:** Yes
+
+Controls whether native anchor interception requires the `link` attribute.
+
+### `preload`
+
+- **Type:** `boolean`
+- **Default:** `true`
+- **Optional:** Yes
+
+Controls router-managed anchor preloading.
+
+## Behavior
+
+- On the server, `Router` delegates to `StaticRouter`.
+- Client routing reads the current path from `window.location.pathname`, `window.location.search`, and `window.location.hash`.
+- Navigation writes with `window.history.pushState` or `window.history.replaceState`.
+- Hash scrolling uses the decoded hash target when one is present.
+- Native anchor, preload, and form action event handlers are installed on the client.
+
+## Examples
+
+### Basic usage
+
+```tsx
 import { render } from "solid-js/web";
+import { Route, Router } from "@solidjs/router";
 
-import { Router, Route } from "@solidjs/router";
-
-const App = (props) => (
-
-  <>
-
-    <h1>Root header</h1>
-
-    {props.children}
-
-  </>
-
-);
+function Layout(props) {
+	return (
+		<>
+			<h1>Root header</h1>
+			{props.children}
+		</>
+	);
+}
 
 render(
-
-  () => <Router root={App}>{/*... routes */}</Router>,
-
-  document.getElementById("root")
-
+	() => (
+		<Router root={Layout}>
+			<Route path="/" component={() => <h2>Home</h2>} />
+		</Router>
+	),
+	document.getElementById("root")!
 );
 ```
-| prop          | type                                                 | description                                                                                                                                                                                                                   |
-|---------------|------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| children      | `JSX.Element`, `RouteDefinition`, or `RouteDefinition[]` | The route definitions                                                                                                                                                                                                         |
-| root          | `Component`                                          | Top level layout component                                                                                                                                                                                                    |
-| base          | `string`                                             | Base url to use for matching routes                                                                                                                                                                                           |
-| actionBase    | `string`                                             | Root url for server actions, default: `/_server`                                                                                                                                                                              |
-| preload       | `boolean`                                            | Enables/disables preloads globally, default: `true`                                                                                                                                                                           |
-| explicitLinks | `boolean`                                            | Disables all anchors being intercepted and instead requires `<A>`. Default: `false`. (To disable interception for a specific link, set `target` to any value, e.g. `<a target="_self">`.)                                     |
-| url           | `string`                                             | The initial route to render                                                                                                                                                                                                   |
+## Related
+
+- [`Route`](route.md)
+- [`A`](a.md)
+- [`HashRouter`](hash-router.md)
+- [`MemoryRouter`](memory-router.md)

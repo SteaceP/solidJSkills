@@ -1,33 +1,22 @@
-# reload
+# Reload
 
 The `reload` function returns a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object that instructs the router to revalidate specific queries when returned or thrown from a [query](../data-apis/query.md) or [action](../../concepts/actions.md).
 
-* * *
-
 ## Import
 
-```
+```ts
 import { reload } from "@solidjs/router";
 ```
-* * *
-
 ## Type
 
-```
+```ts
 function reload(init?: {
-
-  revalidate?: string | string[];
-
-  headers?: HeadersInit;
-
-  status?: number;
-
-  statusText?: string;
-
+	revalidate?: string | string[];
+	headers?: HeadersInit;
+	status?: number;
+	statusText?: string;
 }): CustomResponse<never>;
 ```
-* * *
-
 ## Parameters
 
 ### `init`
@@ -56,7 +45,8 @@ An object containing any headers to be sent with the response.
 - **Type:** `number`
 - **Required:** No
 
-The HTTP status code of the response. Defaults to [`200 OK`](http://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/200).
+The HTTP status code of the response.
+Defaults to [`200 OK`](http://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/200).
 
 #### `statusText`
 
@@ -65,22 +55,17 @@ The HTTP status code of the response. Defaults to [`200 OK`](http://developer.mo
 
 The status text associated with the status code.
 
-* * *
-
 ## Examples
 
 ### Basic Usage
 
-```
+```ts
 import { action, reload } from "@solidjs/router";
 
 const savePreferencesAction = action(async () => {
+	// ... Saves the user preferences.
 
-  // ... Saves the user preferences.
-
-  // Only revalidate the "userPreferences" query.
-
-  return reload({ revalidate: ["userPreferences"] });
-
+	// Only revalidate the "userPreferences" query.
+	return reload({ revalidate: ["userPreferences"] });
 }, "savePreferences");
 ```

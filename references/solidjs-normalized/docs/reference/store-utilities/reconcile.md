@@ -1,47 +1,69 @@
-# reconcile
+# Reconcile
 
-`reconcile` is designed for diffing data changes in situations where granular updates cannot be applied. This is useful when dealing with immutable data from stores or handling large API responses.
+`reconcile` creates a store modifier that reconciles existing state with a new value.
 
+## Import
+
+```ts
+import { reconcile } from "solid-js/store";
 ```
-import { reconcile } from "solid-js/store"
+## Type
 
-import type { NotWrappable, Store } from "solid-js/store"
-
-function reconcile<T>(
-
-  value: T | Store<T>,
-
-  options?: {
-
-    key?: string | null;
-
-    merge?: boolean;
-
-  } = { key: "id" }
-
-): (
-
-  state: T extends NotWrappable ? T : Store<T>
-
-) => T extends NotWrappable ? T : Store<T>;
+```ts
+function reconcile<T extends U, U>(
+	value: T,
+	options?: {
+		key?: string | null;
+		merge?: boolean;
+	}
+): (state: U) => T;
 ```
-`reconcile` has a `key` option that can be used when available to match items. The `value` accepts either a value of type `T` or a Store containing values of type `T`. This represents the data to be reconciled.
+## Parameters
 
-The `reconcile` function helps manage data changes by performing a diffing process, making it particularly handy in scenarios where applying granular updates is challenging or inefficient.
+### `value`
 
-The `key` and `merge` options provide flexibility to customize the reconciliation process based on specific needs.
+- **Type:** `T`
 
+New value to reconcile against the current state.
+
+### `options`
+
+#### `key`
+
+- **Type:** `string | null`
+
+Key used to match items during reconciliation.
+
+#### `merge`
+
+- **Type:** `boolean`
+
+Controls whether reconciliation pushes updates to the leaves instead of replacing non-matching branches.
+
+## Return value
+
+- **Type:** `(state: U) => T`
+
+Store modifier function.
+
+## Behavior
+
+- `reconcile` is for reconciling an incoming snapshot against existing store state.
+- With the default `key`, array items are matched by `"id"` where possible and otherwise fall back to positional or reference matching.
+- Non-wrappable values are replaced directly.
+- When `merge` is `false`, reconciliation prefers replacing non-matching branches. When `merge` is `true`, it pushes updates deeper into the structure.
+
+## Examples
+
+### Basic usage
+
+```ts
+import { createStore, reconcile } from "solid-js/store";
+
+const [state, setState] = createStore({ todos: [] });
+
+setState("todos", reconcile([{ id: 1, title: "Write docs" }]));
 ```
-// subscribing to an observable
+## Related
 
-const unsubscribe = store.subscribe(({ todos }) => (
-
-  setState('todos', reconcile(todos));
-
-);
-
-onCleanup(() => unsubscribe());
-```
-##### Options
-
-OptionTypeDefaultDescriptionkeystring"id"Specifies the key to be used for matching items during reconciliationmergebooleanfalseWhen merge is false, referential checks are performed where possible to determine equality, and items that are not referentially equal are replaced. When merge is true, all diffing is pushed to the leaves, effectively morphing the previous data to the new value.
+- [`produce`](produce.md)

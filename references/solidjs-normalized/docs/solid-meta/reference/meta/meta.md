@@ -1,38 +1,46 @@
 # Meta
 
-The `<Meta>` component represents metadata that cannot be represented by other HTML elements. It is a wrapper for the native [`meta`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta) element and has the same properties.
+`Meta` adds a [`<meta>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta) element for metadata that is not represented by another HTML metadata element.
 
-```
+## Import
+
+```tsx
 import { Meta } from "@solidjs/meta";
-
-<Meta name="description" content="My site description" />;
 ```
-`Meta` components can be placed in the [`MetaProvider`](metaprovider.md) or added throughout the application for additional metadata or override parents. `Meta` tags are considered the same and will be overridden if `name` attributes match.
+## Type
 
-* * *
-
-## Usage
-
-### Adding `meta` tag
-
+```tsx
+const Meta: Component<JSX.MetaHTMLAttributes<HTMLMetaElement>>;
 ```
+## Props
+
+Accepts attributes for [`<meta>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta).
+
+## Behavior
+
+- Registers a `meta` tag with self-closing server rendering.
+- Cascading identity uses `name`, `http-equiv`, `content`, `charset`, `media`, and `property` from the tag props.
+- `property` is treated as `name` when Solid Meta builds the tag key.
+- Requires [`MetaProvider`](metaprovider.md) in the component tree.
+
+## Examples
+
+### Basic usage
+
+```tsx
 import { MetaProvider, Meta } from "@solidjs/meta";
 
 export default function Root() {
-
-  return (
-
-    <MetaProvider>
-
-      <Meta charset="utf-8" />
-
-      <Meta name="viewport" content="width=device-width, initial-scale=1" />
-
-      <Meta name="description" content="Hacker News Clone built with Solid" />
-
-    </MetaProvider>
-
-  );
-
+	return (
+		<MetaProvider>
+			<Meta charset="utf-8" />
+			<Meta name="viewport" content="width=device-width, initial-scale=1" />
+			<Meta name="description" content="Hacker News Clone built with Solid" />
+		</MetaProvider>
+	);
 }
 ```
+## Related
+
+- [`MetaProvider`](metaprovider.md)
+- [`useHead`](use-head.md)

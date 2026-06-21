@@ -108,7 +108,8 @@ async function validateMacroSkillBindings() {
     const skillFile = path.join(repoRoot, 'skills', skillName, 'SKILL.md');
     let content;
     try {
-      content = await fs.readFile(skillFile, 'utf8');
+      const rawContent = await fs.readFile(skillFile, 'utf8');
+      content = rawContent.replace(/\r\n/g, '\n');
     } catch {
       errors.push(`Missing macro skill file: skills/${skillName}/SKILL.md`);
       continue;

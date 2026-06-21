@@ -1,67 +1,48 @@
-# app.tsx
+# App
 
-The `App` component is the isomorphic (shared on server and browser) entry point into your application. This is where the code runs on both sides. This is like the classic entry point where you can define your router, and other top level components.
+`app.tsx` is the resolved app root module.
 
-* * *
+## Import
 
-## Basic example (with routing)
+`app.tsx` is loaded as the virtual app module.
 
-This is where routers setup navigation between the pages discovered by the [`FileRouter`](../routing/file-routes.md).
+## Type
 
+```tsx
+export default function App(): JSX.Element;
 ```
-import { A, Router } from "@solidjs/router";
+## Parameters
 
+The default app component takes no required arguments.
+
+## Return value
+
+- **Type:** `JSX.Element`
+
+Returns the root app element.
+
+## Behavior
+
+- The config aliases `#start/app` to the app module under `appRoot`.
+- Default `appRoot` is `"./src"`.
+- Entry files use `.jsx` when `${appRoot}/app.jsx` exists; otherwise they use `.tsx`.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 
-import { Suspense } from "solid-js";
-
 export default function App() {
-
-  return (
-
-    <Router
-
-      root={(props) => (
-
-          <A href="/">Index</A>
-
-          <A href="/about">About</A>
-
-          <Suspense>{props.children}</Suspense>
-
-      )}
-
-    >
-
-      <FileRoutes />
-
-    </Router>
-
-  );
-
+	return (
+		<Router>
+			<FileRoutes />
+		</Router>
+	);
 }
 ```
-See a similar example in [StackBlitz](https://stackblitz.com/github/solidjs/solid-start/tree/main/examples/basic?file=src%2Fapp.tsx)
+## Related
 
-* * *
-
-## Bare example (no routing)
-
-Since SolidStart does not come packaged with a router, you can simply return your template of choice:
-
-```
-export default function App() {
-
-  return (
-
-    <main>
-
-      <h1>Hello world!</h1>
-
-    </main>
-
-  );
-
-}
-```
-See this example in [StackBlitz](https://stackblitz.com/github/solidjs/solid-start/tree/main/examples/bare?file=src%2Fapp.tsx)
+- [`FileRoutes`](../routing/file-routes.md)

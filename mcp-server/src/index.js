@@ -149,7 +149,7 @@ server.registerTool(
   'list_docs',
   {
     description: 'List all docs under skills/, guides/, tools/templates/, references/, and solidJSdocs/.',
-    inputSchema: z.object({}).shape
+    inputSchema: z.object({})
   },
   async () => {
     const docs = await listRepositoryDocs();
@@ -173,7 +173,6 @@ server.registerTool(
       .object({
         path: z.string().min(1).describe('Repository-relative path, e.g. skills/solid-component-builder/SKILL.md')
       })
-      .shape
   },
   async ({ path: documentPath }) => {
     const fullPath = normalizePath(documentPath);
@@ -199,7 +198,6 @@ server.registerTool(
       .object({
         query: z.string().min(1).describe('Case-insensitive search query')
       })
-      .shape
   },
   async ({ query }) => {
     const docs = await listRepositoryDocs();
@@ -227,7 +225,6 @@ server.registerTool(
         topic: z.string().optional().describe('Optional topic filter (exact match).'),
         limit: z.number().int().min(1).max(500).default(100).describe('Maximum records to return.')
       })
-      .shape
   },
   async ({ package: packageName, topic, limit = 100 }) => {
     const manifest = await loadManifest();
@@ -255,7 +252,6 @@ server.registerTool(
         doc_id: z.string().min(1).describe('Document identifier from manifest.jsonl.'),
         source: z.enum(['normalized', 'raw']).default('normalized').describe('Which source body to return.')
       })
-      .shape
   },
   async ({ doc_id: docId, source = 'normalized' }) => {
     const manifest = await loadManifest();
@@ -307,7 +303,6 @@ server.registerTool(
         topic: z.string().optional().describe('Optional topic filter.'),
         limit: z.number().int().min(1).max(100).default(20)
       })
-      .shape
   },
   async ({ query, package: packageName, topic, limit = 20 }) => {
     const queryLower = query.toLowerCase();
@@ -342,7 +337,6 @@ server.registerTool(
         symbol: z.string().min(1).describe('API symbol, e.g. createSignal, useNavigate, StartServer'),
         limit: z.number().int().min(1).max(50).default(10)
       })
-      .shape
   },
   async ({ symbol, limit = 10 }) => {
     const queryLower = symbol.toLowerCase();

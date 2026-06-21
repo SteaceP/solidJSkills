@@ -103,7 +103,8 @@ function outputFormat(frontmatter) {
 
 async function validateSkill(skillFile) {
   const rel = path.relative(repoRoot, skillFile);
-  const content = await fs.readFile(skillFile, 'utf8');
+  const rawContent = await fs.readFile(skillFile, 'utf8');
+  const content = rawContent.replace(/\r\n/g, '\n');
   const errors = [];
 
   const frontmatter = extractFrontmatter(content);

@@ -1,45 +1,49 @@
-# style
+# Style
 
-Solid's style attribute lets you provide either a CSS string or an object where keys are CSS property names:
+`style` sets inline styles from either a CSS string or an object.
 
+## Syntax
+
+```tsx
+<div style="color: green" />
+<div style={{ color: "green" }} />
 ```
-// string
+## Value
 
+- **Type:** `string | CSSProperties`
+
+CSS string or style object.
+
+## Behavior
+
+- String values are written as inline CSS text.
+- Object values are applied property by property with `element.style.setProperty`, so keys should use lower-case, dash-separated CSS property names instead of camelCase. CSS custom properties can use keys such as `--my-color`.
+- Nullish values in a style object remove that property, and falsy overall `style` values remove the `style` attribute.
+- In SSR output, object values are serialized into the emitted `style` attribute.
+
+## Examples
+
+### CSS string
+
+```tsx
 <div style={`color: green; height: ${state.height}px`} />
+```
+### Style object
 
-// object
-
-<div style={{
-
-  color: "green",
-
-  height: state.height + "px" }}
-
+```tsx
+<div
+	style={{
+		color: "green",
+		"background-color": state.color,
+		height: `${state.height}px`,
+	}}
 />
 ```
-Unlike [React's style attribute](https://reactjs.org/docs/dom-elements.html#style), Solid uses **element.style.setProperty** under the hood. This means you need to use the lower-case, dash-separated version of property names instead of the JavaScript camel-cased version, such as `background-color` rather than `backgroundColor`. This actually leads to better performance and consistency with SSR output.
+### CSS variable
 
-```
-// string
-
-<div style={`color: green; background-color: ${state.color}; height: ${state.height}px`} />
-
-// object
-
-<div style={{
-
-  color: "green",
-
-  "background-color": state.color,
-
-  height: state.height + "px" }}
-
-/>
-```
-This also means you can set CSS variables! For example:
-
-```
-// set css variable
-
+```tsx
 <div style={{ "--my-custom-color": state.themeColor }} />
 ```
+## Related
+
+- [`classList`](classlist.md)

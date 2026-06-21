@@ -1,35 +1,53 @@
-# &lt;NoHydration&gt;
+# No Hydration
 
-The `<NoHydration>` component prevents the client-side hydration process from being applied to its children. During server-side rendering, components and elements wrapped within `<NoHydration>` will render normally on the server, contributing to the initial HTML output. However, during client-side hydration, Solid bypasses the hydration process for the content within `<NoHydration>`. This means that elements within `<NoHydration>` will not have event listeners attached by Solid, and their state will not be managed reactively on the client-side after the initial render.
+`<NoHydration>` skips hydration for its subtree on the client.
 
-Placing a `<Hydration>` component inside `<NoHydration>` has no effect and will not override the `<NoHydration>` behavior.
+## Import
 
-* * *
-
-## Example
-
-```
+```ts
 import { NoHydration } from "solid-js/web";
+```
+## Type
 
-import { InteractiveComponent, StaticContent } from "./components";
+```ts
+function NoHydration(props: { children?: JSX.Element }): JSX.Element;
+```
+## Props
 
+### `children`
+
+- **Type:** `JSX.Element`
+
+Content inside the boundary.
+
+## Return value
+
+- **Type:** `JSX.Element`
+
+Returns the children during server and client-only rendering.
+
+## Behavior
+
+- During server rendering, children inside `<NoHydration>` render normally.
+- During client hydration, Solid leaves the existing server-rendered DOM in place and does not hydrate that subtree.
+- In client-only rendering, `<NoHydration>` renders its children normally.
+- Interactive behavior inside the boundary does not hydrate on the client.
+
+## Examples
+
+### Basic usage
+
+```tsx
 function Example() {
-
-  return (
-
-    <div>
-
-      <InteractiveComponent />
-
-      <NoHydration>
-
-        <StaticContent />
-
-      </NoHydration>
-
-    </div>
-
-  );
-
+	return (
+		<div>
+			<button onClick={() => console.log("hydrated")}>Hydrated button</button>
+			<NoHydration>
+				<div>
+					<strong>Rendered on the server without hydration</strong>
+				</div>
+			</NoHydration>
+		</div>
+	);
 }
 ```

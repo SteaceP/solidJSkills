@@ -1,22 +1,51 @@
-# DEV
+# Dev
 
+`DEV` is a development-only export from `solid-js`.
+It exposes Solid's development hooks and internals for development tooling and diagnostics.
+
+## Import
+
+```ts
+import { DEV } from "solid-js";
 ```
-import { DEV } from "solid-js"
+## Type
 
-const DEV: object | undefined
+```ts
+const DEV:
+	| {
+			readonly hooks: {
+				afterUpdate: (() => void) | null;
+				afterCreateOwner: ((owner: unknown) => void) | null;
+				afterCreateSignal: ((signal: unknown) => void) | null;
+				afterRegisterGraph: ((sourceMapValue: unknown) => void) | null;
+			};
+			readonly writeSignal: (...args: unknown[]) => unknown;
+			readonly registerGraph: (...args: unknown[]) => unknown;
+	  }
+	| undefined;
 ```
-On the client, Solid provides (via [conditional exports](https://nodejs.org/api/packages.html#conditional-exports)) different builds depending on whether the **development** condition is set. Development mode provides some additional checking — e.g. detecting accidental use of multiple instances of Solid — which are removed in production builds.
+## Value
 
-If you want code to run only in development mode (most useful in libraries), you can check whether the **DEV** export is defined. Note that it is always defined on the server, so you may want to combine with [isServer](is-server.md):
+- **Type:** development-only object or `undefined`
 
-```
-import { DEV } from "solid-js"
+## Behavior
 
-import { isServer } from "solid-js/web"
+- In the development browser bundle, `DEV` is defined and exposes development hooks and internals.
+- In production and server bundles, `DEV` is `undefined`.
+- `DEV` is intended for tooling, diagnostics, and library code that needs development-only behavior.
 
-if (DEV && !isServer) {
+## Examples
 
-  console.log(...);
+### Basic usage
 
+```ts
+import { DEV } from "solid-js";
+
+if (DEV) {
+	console.warn("development-only check");
 }
 ```
+## Related
+
+- [`isDev`](is-dev.md)
+- [`isServer`](is-server.md)

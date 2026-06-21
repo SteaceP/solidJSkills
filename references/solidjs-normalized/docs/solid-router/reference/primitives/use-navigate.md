@@ -1,52 +1,36 @@
-# useNavigate
+# Use Navigate
 
-The `useNavigate` function provides a function for programmatically navigating to a new route.
-
-* * *
+`useNavigate` returns a function for programmatically navigating to a new route.
 
 ## Import
 
-```
+```ts
 import { useNavigate } from "@solidjs/router";
 ```
-* * *
-
 ## Type
 
-```
+```ts
 interface NavigateOptions<S = unknown> {
-
-  resolve: boolean;
-
-  replace: boolean;
-
-  scroll: boolean;
-
-  state: S;
-
+	resolve: boolean;
+	replace: boolean;
+	scroll: boolean;
+	state: S;
 }
 
-function useNavigate(): (
+interface Navigator {
+	(to: string | number, options?: Partial<NavigateOptions>): void;
+	(delta: number): void;
+}
 
-  to: string,
-
-  options?: Partial<NavigateOptions>
-
-) => void;
-
-function useNavigate(delta: number): void;
+function useNavigate(): Navigator;
 ```
-* * *
-
 ## Parameters
 
 `useNavigate` takes no arguments.
 
-* * *
-
 ## Return value
 
-- **Type:** `(to: string | number, options?: NavigateOptions) => void | (delta: number) => void`
+- **Type:** `Navigator`
 
 Returns a function that accepts two arguments:
 
@@ -55,60 +39,55 @@ Returns a function that accepts two arguments:
 - **Type:** `string | number`
 - **Required:** Yes
 
-The target destination.
-
-- `string`: A path to navigate to.
-- `number`: A history delta (e.g., `-1` for back, `1` for forward). If provided, the `options` argument is ignored.
+Path to navigate to, or history delta (e.g., `-1` for back, `1` for forward) for the router integration.
 
 ### `options`
 
-- **Type:** `NavigateOptions`
+- **Type:** `Partial<NavigateOptions>`
 - **Required:** No
 
-Configuration object for the navigation.
+Navigation options used when `to` is a string.
 
-#### `resolve`
+### `options.resolve`
+
+- **Type:** `boolean`
+- **Default:** `true` for path navigation, `false` for query-only strings.
+
+Controls whether the target path resolves against the current route.
+
+### `options.replace`
+
+- **Type:** `boolean`
+- **Default:** `false`
+
+Controls whether navigation replaces the current history entry.
+
+### `options.scroll`
 
 - **Type:** `boolean`
 - **Default:** `true`
 
-Resolves the path relative to the current route. If `false`, the path is resolved against the root (`/`).
+Controls whether navigation scrolls after the route changes.
 
-If `to` is a query-only string (e.g., `?sort=asc`), this defaults to `false` to preserve the current pathname.
+### `options.state`
 
-#### `replace`
+- **Type:** `unknown`
+- **Default:** `undefined`
 
-- **Type**: `boolean`
-- **Default**: `false`
+State stored with the next location.
 
-Replaces the current history entry instead of adding a new one. Used for redirects or state updates to prevent the user from navigating back to the previous state.
+## Behavior
 
-#### `scroll`
-
-- **Type**: `boolean`
-- **Default**: `true`
-
-Scrolls the window to the top after navigation.
-
-- `true`: Scrolls to the top or to the element matching the hash.
-- `false`: Maintains the current scroll position (unless a hash matches).
-
-#### `state`
-
-- **Type**: `any`
-- **Default**: `undefined`
-
-Arbitrary state stored in `history.state`. This value is accessible via `useLocation().state`.
-
-State is serialized using the [structured clone algorithm](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm), which supports most built-in types but not functions or DOM nodes.
-
-* * *
+- Passing `0` as a history delta does nothing.
+- Nonzero history deltas call the router integration `go` function when one exists.
+- Query-only strings are resolved against the current pathname.
+- On the server, path navigation sets a `302` response with a `Location` header when a request event is available.
 
 ## Examples
 
 ### Basic usage
 
-```
+```tsx
 import { useNavigate } from "@solidjs/router";
 
 const navigate = useNavigate();
@@ -117,51 +96,40 @@ navigate("/users/123");
 ```
 ### With `replace`
 
-```
+```tsx
 import { useNavigate } from "@solidjs/router";
 
 const navigate = useNavigate();
 
 // Redirect (replace history)
-
 function login() {
-
-  navigate("/dashboard", { replace: true });
-
+	navigate("/dashboard", { replace: true });
 }
 ```
 ### With `delta`
 
-```
+```tsx
 import { useNavigate } from "@solidjs/router";
 
 const navigate = useNavigate();
 
 // Go back one page
-
 function goBack() {
-
-  navigate(-1);
-
+	navigate(-1);
 }
 ```
 ### With `state`
 
-```
+```tsx
 import { useNavigate } from "@solidjs/router";
 
 const navigate = useNavigate();
 
 // Pass custom state
-
 navigate("/checkout", {
-
-  state: { from: "cart", total: 100 },
-
+	state: { from: "cart", total: 100 },
 });
 ```
-* * *
-
 ## Related
 
 - [useLocation](use-location.md)

@@ -1,105 +1,94 @@
-# preload
+# Preload
 
-The `preload` function is a property on a route definition that initiates data fetching before a user navigates to the route.
-
-`preload` runs in two separate phases:
-
-- **Preload phase:** Triggered by user intent (e.g., hovering over a link), the function is called to initiate data fetching.
-- **Rendering phase:** Triggered by actual navigation, the function is called a second time to provide the fetched data to the component.
-
-* * *
+`preload` is a [`Route`](../components/route.md) property for preparing route data before the route component renders or while a route is being preloaded.
 
 ## Import
 
-```
+```tsx
 import { Route } from "@solidjs/router";
 ```
-* * *
-
 ## Type
 
-```
-type RoutePreloadFunc<T = unknown> = (args: RoutePreloadFuncArgs) => T;
+```tsx
+type Intent = "initial" | "native" | "navigate" | "preload";
 
 interface RoutePreloadFuncArgs {
-
-  params: Params;
-
-  location: Location;
-
-  intent: "initial" | "native" | "navigate" | "preload";
-
+	params: Params;
+	location: Location;
+	intent: Intent;
 }
-```
-* * *
 
+type RoutePreloadFunc<T = unknown> = (args: RoutePreloadFuncArgs) => T;
+```
 ## Parameters
 
 ### `params`
 
 - **Type:** `Params`
+- **Required:** Yes
 
-An object containing the parameters for the matched route. It corresponds to the value returned by the [`useParams` primitive](../primitives/use-params.md).
+Route params for the matched route.
+The value has the same shape as [`useParams`](../primitives/use-params.md).
 
 ### `location`
 
 - **Type:** `Location`
+- **Required:** Yes
 
-The router's location object for the destination URL. It corresponds to the value returned by the [`useLocation` primitive](../primitives/use-location.md).
+[`Location`](../primitives/use-location.md) for the route being loaded or preloaded.
 
 ### `intent`
 
 - **Type:** `"initial" | "native" | "navigate" | "preload"`
+- **Required:** Yes
 
-A string indicating the context in which the function is called.
-
-- `"preload"`: The function is running to initiate data fetching.
-- `"navigate"`: The function is running during navigation to the route.
-- `"initial"`: The function is running for the first route on page load.
-
-* * *
+Reason the router called the preload function, such as initial render, router navigation, native history navigation, or route preloading.
 
 ## Return value
 
-The value returned by `preload` is passed to the route's component as the `data` prop.
+- **Type:** `T`
 
-- In the **preload phase** (`intent: "preload"`), the return value is **ignored**.
-- In the **rendering phase** (`intent: "navigate"` or `"initial"`), the return value is **captured** and provided to the component.
+Returns the route data value.
+During route context creation, Solid Router passes this value to the matched route component as `props.data`.
 
-* * *
+## Behavior
+
+- During route context creation, Solid Router calls `preload` with the matched params, current location, and current router intent or `"initial"`.
+- Manual route preloading calls `preload` with `intent: "preload"` only when `preloadData` is truthy.
+- If a route definition has no `preload`, Solid Router uses the deprecated `load` property when one is present.
+- The route component's static `preload` method runs before the route-level `preload` function.
 
 ## Examples
 
-```
-import { Route, query, createAsync } from "@solidjs/router";
+### Basic usage
 
-const getProductQuery = query(async (id: string) => {
+```tsx
+import { Route, query } from "@solidjs/router";
 
-  // ... Fetches a product from the server.
-
+const getProduct = query(async (id: string) => {
+	const response = await fetch(`/api/products/${id}`);
+	return response.json();
 }, "product");
 
+function preloadProduct({ params }) {
+	void getProduct(params.id);
+}
+
 function ProductPage(props) {
-
-  const product = createAsync(() => getProductQuery(props.params.id));
-
-  return <div>{product()?.title}</div>;
-
+	return <h1>Product {props.params.id}</h1>;
 }
 
-function preloadData({ params }) {
-
-  getProductQuery(params.id);
-
-}
-
-function ProductRoutes() {
-
-  return (
-
-    <Route path="/products/:id" component={ProductPage} preload={preloadData} />
-
-  );
-
+export default function ProductRoutes() {
+	return (
+		<Route
+			path="/products/:id"
+			component={ProductPage}
+			preload={preloadProduct}
+		/>
+	);
 }
 ```
+## Related
+
+- [`Route`](../components/route.md)
+- [`usePreloadRoute`](../primitives/use-preload-route.md)

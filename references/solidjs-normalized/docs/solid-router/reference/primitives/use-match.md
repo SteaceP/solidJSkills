@@ -1,43 +1,31 @@
-# useMatch
+# Use Match
 
-The `useMatch` function checks whether the current path matches a provided path pattern.
-
-* * *
+`useMatch` returns an accessor for matching the current pathname against a route pattern.
 
 ## Import
 
-```
+```ts
 import { useMatch } from "@solidjs/router";
 ```
-* * *
-
 ## Type
 
-```
-const useMatch: <S extends string>(
-
-  path: () => S,
-
-  matchFilters?: MatchFilters<S>
-
-): Accessor<PathMatch | undefined>;
+```ts
+type MatchFilter = readonly string[] | RegExp | ((s: string) => boolean);
 
 type MatchFilters<P extends string | readonly string[] = any> = P extends string
-
-  ? { [K in PathParams<P>[number]]?: MatchFilter }
-
-  : Record<string, MatchFilter>;
+	? { [K in PathParams<P>[number]]?: MatchFilter }
+	: Record<string, MatchFilter>;
 
 interface PathMatch {
-
-  params: Params;
-
-  path: string;
-
+	params: Params;
+	path: string;
 }
-```
-* * *
 
+function useMatch<S extends string>(
+	path: () => S,
+	matchFilters?: MatchFilters<S>
+): Accessor<PathMatch | undefined>;
+```
 ## Parameters
 
 ### `path`
@@ -45,20 +33,19 @@ interface PathMatch {
 - **Type:** `() => S`
 - **Required:** Yes
 
-An accessor function that returns the path pattern to match against the current route. Uses the same syntax as the `path` prop in the [`<Route>`](../components/route.md) component. Supports [path parameters](../../concepts/path-parameters.md), [optional parameters](../../concepts/path-parameters.md#optional-parameters), and [wildcard parameters](../../concepts/path-parameters.md#wildcard-routes).
+Accessor that returns the path pattern to match.
 
-### `filters`
+### `matchFilters`
 
 - **Type:** `MatchFilters<S>`
 - **Required:** No
 
-An object where keys correspond to route parameter names and values define match filters. Each filter can be:
+Filters applied to path parameters in the pattern.
+Each filter can be:
 
 - An array of allowed strings
 - A regular expression pattern
 - A function that receives the parameter value as a string and returns true if the parameter should match
-
-* * *
 
 ## Return value
 
@@ -78,97 +65,72 @@ An object containing the matched path parameters as key-value pairs.
 
 The matched path.
 
-* * *
+## Behavior
+
+- Expands optional path segments before creating matchers.
+- Matchers test against [`useLocation`](use-location.md)'s `pathname`.
+- The accessor returns the first match or `undefined`.
 
 ## Examples
 
 ### Basic usage
 
-```
+```tsx
 import { useMatch } from "@solidjs/router";
-
 import { type JSXElement } from "solid-js";
 
 type NavLinkProps = {
-
-  href: string;
-
-  children: JSXElement;
-
+	href: string;
+	children: JSXElement;
 };
 
 function NavLink(props: NavLinkProps) {
+	const match = useMatch(() => props.href);
 
-  const match = useMatch(() => props.href);
-
-  return (
-
-    <a href={props.href} classList={{ active: Boolean(match()) }}>
-
-      {props.children}
-
-    </a>
-
-  );
-
+	return (
+		<a href={props.href} classList={{ active: Boolean(match()) }}>
+			{props.children}
+		</a>
+	);
 }
 ```
 ### With filters
 
-```
+```tsx
 import { useMatch } from "@solidjs/router";
-
 import { Show } from "solid-js";
 
 function BlogPost() {
+	const match = useMatch(() => "/:lang?/blog/:slug", {
+		lang: ["en", "es", "fr"],
+		slug: /^[a-z0-9-]+$/, // Only allow lowercase letters, numbers, and hyphens
+	});
 
-  const match = useMatch(() => "/:lang?/blog/:slug", {
+	const lang = () => match()?.params.lang || "en";
 
-    lang: ["en", "es", "fr"],
-
-    slug: /^[a-z0-9-]+$/, // Only allow lowercase letters, numbers, and hyphens
-
-  });
-
-  const lang = () => match()?.params.lang || "en";
-
-  return (
-
-    <Show when={match()}>
-
-      <article lang={lang()}>
-
-        <p>Blog slug: {match()?.params.slug}</p>
-
-      </article>
-
-    </Show>
-
-  );
-
+	return (
+		<Show when={match()}>
+			<article lang={lang()}>
+				<p>Blog slug: {match()?.params.slug}</p>
+			</article>
+		</Show>
+	);
 }
 ```
 ### With custom filter functions
 
-```
+```tsx
 import { useMatch } from "@solidjs/router";
 
 function FileInfo() {
+	const match = useMatch(() => "/files/:type/:name", {
+		type: ["images", "documents", "videos"],
+		name: (name) => name.length > 5 && name.endsWith(".html"),
+	});
 
-  const match = useMatch(() => "/files/:type/:name", {
-
-    type: ["images", "documents", "videos"],
-
-    name: (name) => name.length > 5 && name.endsWith(".html"),
-
-  });
-
-  return <div>File: {match()?.params.name}</div>;
-
+	return <div>File: {match()?.params.name}</div>;
 }
 ```
-* * *
-
 ## Related
 
 - [`useParams`](use-params.md)

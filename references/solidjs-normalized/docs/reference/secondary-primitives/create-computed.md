@@ -1,47 +1,30 @@
-# createComputed
+# Create Computed
 
-The `createComputed` function creates a reactive computation that runs *before* the rendering phase. It is primarily used to synchronize state before rendering begins.
-
-* * *
+`createComputed` creates an immediate reactive computation.
+It runs synchronously in the current execution context when created, then re-runs whenever its tracked dependencies change.
 
 ## Import
 
-```
+```ts
 import { createComputed } from "solid-js";
 ```
-* * *
-
 ## Type
 
-```
+```ts
 function createComputed<Next>(
-
-  fn: EffectFunction<undefined | NoInfer<Next>, Next>
-
+	fn: EffectFunction<undefined | NoInfer<Next>, Next>
 ): void;
-
 function createComputed<Next, Init = Next>(
-
-  fn: EffectFunction<Init | Next, Next>,
-
-  value: Init,
-
-  options?: { name?: string }
-
+	fn: EffectFunction<Init | Next, Next>,
+	value: Init,
+	options?: { name?: string }
 ): void;
-
 function createComputed<Next, Init>(
-
-  fn: EffectFunction<Init | Next, Next>,
-
-  value?: Init,
-
-  options?: { name?: string }
-
+	fn: EffectFunction<Init | Next, Next>,
+	value?: Init,
+	options?: { name?: string }
 ): void;
 ```
-* * *
-
 ## Parameters
 
 ### `fn`
@@ -49,9 +32,11 @@ function createComputed<Next, Init>(
 - **Type:** `EffectFunction<undefined | NoInfer<Next>, Next> | EffectFunction<Init | Next, Next>`
 - **Required:** Yes
 
-The function that performs the computation. It executes immediately to track dependencies and re-runs whenever a dependency changes.
+The function that performs the computation.
+It executes immediately to track dependencies and re-runs whenever a dependency changes.
 
-It receives the value returned from the previous execution as its argument. On the initial execution, it receives the [`value`](create-computed.md#value) parameter (if provided) or `undefined`.
+It receives the value returned from the previous execution as its argument.
+On the initial execution, it receives the [`value`](#value) parameter (if provided) or `undefined`.
 
 ### `value`
 
@@ -72,9 +57,8 @@ An optional configuration object with the following properties:
 - **Type:** `string`
 - **Required:** No
 
-A debug name for the computation. It is used for identification in debugging tools like the [Solid Debugger](https://github.com/thetarnav/solid-devtools).
-
-* * *
+A debug name for the computation.
+It is used for identification in debugging tools like the [Solid Debugger](https://github.com/thetarnav/solid-devtools).
 
 ## Return value
 
@@ -82,69 +66,42 @@ A debug name for the computation. It is used for identification in debugging too
 
 `createComputed` does not return a value.
 
-* * *
+## Behavior
+
+- `createComputed` runs immediately when it is created.
+- It tracks reactive reads inside `fn` and re-runs synchronously when those dependencies change.
+- Unlike [`createMemo`](../basic-reactivity/create-memo.md), it does not expose a derived accessor.
+- `createComputed` is primarily used to build reactive primitives. Application code that derives state usually wants [`createMemo`](../basic-reactivity/create-memo.md) instead.
 
 ## Examples
 
-### Basic usage
+### Build a writable derived signal
 
-```
-import { createComputed } from "solid-js";
+```tsx
+import { createComputed, createSignal } from "solid-js";
 
-import { createStore } from "solid-js/store";
+function createWritableMemo<T>(fn: () => T) {
+	const [value, setValue] = createSignal(fn());
 
-type User = {
+	createComputed(() => {
+		setValue(fn());
+	});
 
-  name?: string;
+	return value;
+}
 
-};
+function Counter() {
+	const [count, setCount] = createSignal(1);
+	const double = createWritableMemo(() => count() * 2);
 
-type UserEditorProps = {
-
-  user: User;
-
-};
-
-function UserEditor(props: UserEditorProps) {
-
-  const [formData, setFormData] = createStore<User>({
-
-    name: "",
-
-  });
-
-  // Update the store synchronously when props change.
-
-  // This prevents a second render cycle.
-
-  createComputed(() => {
-
-    setFormData("name", props.user.name);
-
-  });
-
-  return (
-
-    <form>
-
-      <h1>Editing: {formData.name}</h1>
-
-      <input
-
-        value={formData.name}
-
-        onInput={(e) => setFormData("name", e.currentTarget.value)}
-
-      />
-
-    </form>
-
-  );
-
+	return (
+		<>
+			<p>{double()}</p>
+			<button onClick={() => setCount((value) => value + 1)}>Increment</button>
+		</>
+	);
 }
 ```
-* * *
-
 ## Related
 
 - [`createMemo`](../basic-reactivity/create-memo.md)

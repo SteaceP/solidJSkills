@@ -1,20 +1,106 @@
 # Route
 
-`Route` is the component used when defining the routes of an application. This component is used to define the structure of the application and the components that will be rendered for each route.
+`Route` creates a route definition. It describes a path segment, the component for the match, route data setup, metadata, and nested child routes.
 
-Multiple paths
+## Import
 
-Routes support defining multiple paths using an array. This is useful for when you want a route to remain mounted and not re-render when switching between two or more locations that it matches:
-
+```tsx
+import { Route } from "@solidjs/router";
 ```
-<Route path={["/login", "/register"]} component={Login} />
-```
-This would mean navigating from `/login` to `/register` would not cause the `Login` component to re-render.
+## Type
 
-| prop         | type                      | description                                                                 |
-| ------------ | ------------------------- | --------------------------------------------------------------------------- |
-| path         | `string \| string[]`     | Path partial for defining the route segment                                 |
-| component    | `Component`              | Component that will be rendered for the matched segment                     |
-| matchFilters | `MatchFilters`           | Additional constraints for matching against the route                       |
-| children     | `JSX.Element`            | Nested `<Route>` definitions                                                |
-| preload      | `RoutePreloadFunc`       | Function called during preload or when the route is navigated to.          |
+```tsx
+type RouteProps<S extends string, T = unknown> = {
+	path?: S | S[];
+	children?: JSX.Element;
+	preload?: RoutePreloadFunc<T>;
+	matchFilters?: MatchFilters<S>;
+	component?: Component<RouteSectionProps<T>>;
+	info?: Record<string, any>;
+	load?: RoutePreloadFunc<T>;
+};
+
+function Route<S extends string, T = unknown>(
+	props: RouteProps<S, T>
+): JSX.Element;
+```
+## Props
+
+### `path`
+
+- **Type:** `S | S[]`
+- **Optional:** Yes
+
+Path segment or path segments matched by the route.
+
+### `children`
+
+- **Type:** `JSX.Element`
+- **Optional:** Yes
+
+Nested route definitions below this segment.
+
+### `preload`
+
+- **Type:** `RoutePreloadFunc<T>`
+- **Optional:** Yes
+
+Function called for route preloading and route data setup.
+
+### `matchFilters`
+
+- **Type:** `MatchFilters<S>`
+- **Optional:** Yes
+
+Additional constraints for path parameter matching.
+
+### `component`
+
+- **Type:** `Component<RouteSectionProps<T>>`
+- **Optional:** Yes
+
+Component rendered for this route match.
+
+### `info`
+
+- **Type:** `Record<string, any>`
+- **Optional:** Yes
+
+Route metadata stored on the route definition.
+
+### `load`
+
+- **Type:** `RoutePreloadFunc<T>`
+- **Optional:** Yes
+
+Deprecated alias for `preload`.
+
+## Behavior
+
+- Resolves `children` and returns the route props as a route definition object.
+- When route branches are created, `preload` is used for route preloading. If `preload` is absent, `load` is used.
+- Array `path` values create one route description per path.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { Route, Router } from "@solidjs/router";
+
+function Home() {
+	return <h1>Home</h1>;
+}
+
+export default function App() {
+	return (
+		<Router>
+			<Route path="/" component={Home} />
+		</Router>
+	);
+}
+```
+## Related
+
+- [`Router`](router.md)
+- [`preload`](../preload-functions/preload.md)
