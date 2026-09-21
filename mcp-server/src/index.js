@@ -9,7 +9,11 @@ import {
   getManifest,
   getManifestEntry,
   getRepositoryDocs,
-  findSimilarDocs
+  findSimilarDocs,
+  getDocBody,
+  extractSection,
+  paginateLines,
+  extractSnippet
 } from './cache.js';
 import { registerResources } from './resources.js';
 import { registerPrompts } from './prompts.js';
@@ -218,16 +222,19 @@ server.registerTool(
   'read_doc',
   {
     description:
-      'Read one document by repository-relative path, corpus-relative path (e.g. reference/basic-reactivity/create-signal.md), or doc_id.',
+      'Read one document by repository-relative path, corpus-relative path (e.g. reference/basic-reactivity/create-signal.md), or doc_id. Supports optional section extraction and line pagination.',
     inputSchema: z
       .object({
         path: z
           .string()
           .min(1)
-          .describe('Repository path, corpus path, or doc_id (e.g. solid-core.reference.basic-reactivity.create-signal)')
+          .describe('Repository path, corpus path, or doc_id (e.g. solid-core.reference.basic-reactivity.create-signal)'),
+        section: z.string().optional().describe('Optional markdown section/heading to extract (e.g. "createSignal", "Parameters")'),
+        max_lines: z.number().int().positive().optional().describe('Maximum lines of content to return'),
+        offset: z.number().int().min(0).optional().describe('Line offset to start from (0-indexed)')
       })
   },
-  async ({ path: documentPath }) => {
+  async ({ path: documentPath, section, max_lines, offset }) => {
     let fullPath;
     try {
       fullPath = await resolveDocPath(documentPath);
@@ -247,11 +254,27 @@ server.registerTool(
       const contents = await fs.readFile(fullPath, 'utf8');
       const relativePath = path.relative(repoRoot, fullPath);
 
+      let textToReturn = contents;
+      if (section) {
+        const extracted = extractSection(textToReturn, section);
+        if (!extracted.found) {
+          return {
+            isError: true,
+            content: [{ type: 'text', text: `# ${relativePath}\n\n${extracted.text}` }]
+          };
+        }
+        textToReturn = extracted.text;
+      }
+
+      if (max_lines) {
+        textToReturn = paginateLines(textToReturn, max_lines, offset);
+      }
+
       return {
         content: [
           {
             type: 'text',
-            text: `# ${relativePath}\n\n${contents}`
+            text: `# ${relativePath}\n\n${textToReturn}`
           }
         ]
       };
@@ -378,6 +401,21 @@ server.registerTool(
       }
     }
 
+    // Fallback: If no matches found by path/metadata, search document bodies
+    if (matchedPaths.size === 0) {
+      try {
+        const manifest = await loadManifest();
+        for (const entry of manifest) {
+          const fullPath = path.resolve(normalizedDocsRoot, entry.normalized_path || entry.source_path);
+          const body = await getDocBody(fullPath);
+          if (body && body.toLowerCase().includes(queryLower)) {
+            const targetRel = path.relative(repoRoot, fullPath);
+            addMatch(targetRel, 4);
+          }
+        }
+      } catch {}
+    }
+
     if (matchedPaths.size === 0) {
       return {
         content: [
@@ -437,14 +475,17 @@ server.registerTool(
   'read_corpus_doc',
   {
     description:
-      'Read one corpus document by doc_id, returning metadata from manifest and the chosen source body (normalized or raw).',
+      'Read one corpus document by doc_id, returning metadata from manifest and the chosen source body (normalized or raw). Supports optional section extraction and line pagination.',
     inputSchema: z
       .object({
         doc_id: z.string().min(1).describe('Document identifier from manifest.jsonl.'),
-        source: z.enum(['normalized', 'raw']).default('normalized').describe('Which source body to return.')
+        source: z.enum(['normalized', 'raw']).default('normalized').describe('Which source body to return.'),
+        section: z.string().optional().describe('Optional markdown section/heading to extract'),
+        max_lines: z.number().int().positive().optional().describe('Maximum lines of content to return'),
+        offset: z.number().int().min(0).optional().describe('Line offset to start from (0-indexed)')
       })
   },
-  async ({ doc_id: docId, source = 'normalized' }) => {
+  async ({ doc_id: docId, source = 'normalized', section, max_lines, offset }) => {
     const entry = await getManifestEntry(manifestPath, docId);
 
     if (!entry) {
@@ -467,6 +508,37 @@ server.registerTool(
     const { text, path: resolvedPath } = await readCorpusDocument(entry, source);
     const metadata = formatCorpusEntry(entry);
 
+    let bodyToReturn = text;
+    let sectionTitle = undefined;
+    if (section) {
+      const extracted = extractSection(text, section);
+      if (!extracted.found) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                {
+                  metadata,
+                  error: extracted.text,
+                  available_sections: extracted.availableHeadings
+                },
+                null,
+                2
+              )
+            }
+          ]
+        };
+      }
+      bodyToReturn = extracted.text;
+      sectionTitle = extracted.title;
+    }
+
+    if (max_lines) {
+      bodyToReturn = paginateLines(bodyToReturn, max_lines, offset);
+    }
+
     return {
       content: [
         {
@@ -475,8 +547,9 @@ server.registerTool(
             {
               metadata,
               source,
+              ...(sectionTitle ? { section: sectionTitle } : {}),
               resolved_path: resolvedPath,
-              body: text
+              body: bodyToReturn
             },
             null,
             2
@@ -491,26 +564,63 @@ server.registerTool(
   'search_corpus',
   {
     description:
-      'Search normalized corpus metadata and rank matches using doc_id/path/headings/tags/symbols; returns stable manifest-backed results.',
+      'Search normalized corpus metadata and rank matches using doc_id/path/headings/tags/symbols and full-text bodies; returns stable manifest-backed results with snippets.',
     inputSchema: z
       .object({
         query: z.string().min(1).describe('Search query.'),
         package: z.string().optional().describe('Optional package filter.'),
         topic: z.string().optional().describe('Optional topic filter.'),
+        full_text: z.boolean().default(false).describe('Search inside markdown document bodies.'),
         limit: z.number().int().min(1).max(100).default(20)
       })
   },
-  async ({ query, package: packageName, topic, limit = 20 }) => {
+  async ({ query, package: packageName, topic, full_text = false, limit = 20 }) => {
     const queryLower = query.toLowerCase();
     const manifest = await loadManifest();
     const filtered = filterManifestEntries(manifest, { packageName, topic });
 
-    const ranked = filtered
-      .map((entry) => ({ entry, score: scoreEntry(entry, queryLower) }))
-      .filter((item) => item.score > 0)
+    const scoredItems = [];
+    for (const entry of filtered) {
+      let score = scoreEntry(entry, queryLower);
+      let snippet = undefined;
+
+      if (full_text || score > 0) {
+        const fullPath = path.resolve(normalizedDocsRoot, entry.normalized_path || entry.source_path);
+        const body = await getDocBody(fullPath);
+        if (body && body.toLowerCase().includes(queryLower)) {
+          score += 4;
+          snippet = extractSnippet(body, queryLower);
+        }
+      }
+
+      if (score > 0) {
+        scoredItems.push({ entry, score, ...(snippet ? { snippet } : {}) });
+      }
+    }
+
+    // Fallback if no results and full_text wasn't explicitly enabled
+    if (scoredItems.length === 0 && !full_text) {
+      for (const entry of filtered) {
+        const fullPath = path.resolve(normalizedDocsRoot, entry.normalized_path || entry.source_path);
+        const body = await getDocBody(fullPath);
+        if (body && body.toLowerCase().includes(queryLower)) {
+          scoredItems.push({
+            entry,
+            score: 3,
+            snippet: extractSnippet(body, queryLower)
+          });
+        }
+      }
+    }
+
+    const ranked = scoredItems
       .sort((a, b) => b.score - a.score || a.entry.doc_id.localeCompare(b.entry.doc_id))
       .slice(0, limit)
-      .map((item) => ({ score: item.score, ...formatCorpusEntry(item.entry) }));
+      .map((item) => ({
+        score: item.score,
+        ...(item.snippet ? { snippet: item.snippet } : {}),
+        ...formatCorpusEntry(item.entry)
+      }));
 
     return {
       content: [

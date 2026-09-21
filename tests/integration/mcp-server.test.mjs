@@ -420,6 +420,55 @@ async function runTests() {
             errors.push('prompts/get: review-solid-code did not contain expected review instructions and code');
         }
 
+        // 26. Section extraction in read_doc
+        const readDocSectionId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'read_doc',
+            arguments: {
+                path: 'reference/basic-reactivity/create-signal.md',
+                section: 'Parameters'
+            }
+        }, readDocSectionId);
+        const readDocSectionResp = await waitForResponse(serverProc, readDocSectionId);
+        const readDocSectionText = readDocSectionResp.result?.content?.[0]?.text || '';
+        if (!readDocSectionText.includes('## Parameters') || readDocSectionText.includes('# Create Signal')) {
+            errors.push(`read_doc (section): expected Parameters section only, got: ${readDocSectionText.slice(0, 200)}`);
+        }
+
+        // 27. Line pagination in read_doc
+        const readDocPaginateId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'read_doc',
+            arguments: {
+                path: 'reference/basic-reactivity/create-signal.md',
+                max_lines: 5,
+                offset: 0
+            }
+        }, readDocPaginateId);
+        const readDocPaginateResp = await waitForResponse(serverProc, readDocPaginateId);
+        const readDocPaginateText = readDocPaginateResp.result?.content?.[0]?.text || '';
+        if (!readDocPaginateText.includes('Lines 1-5 of')) {
+            errors.push(`read_doc (paginate): expected pagination header 'Lines 1-5 of', got: ${readDocPaginateText.slice(0, 100)}`);
+        }
+
+        // 28. Full-text search with snippets in search_corpus
+        const searchFullTextId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'search_corpus',
+            arguments: {
+                query: 'pull-based reactivity model',
+                full_text: true,
+                limit: 3
+            }
+        }, searchFullTextId);
+        const searchFullTextResp = await waitForResponse(serverProc, searchFullTextId);
+        const searchFullTextParsed = JSON.parse(searchFullTextResp.result?.content?.[0]?.text || '[]');
+        if (!Array.isArray(searchFullTextParsed) || searchFullTextParsed.length === 0) {
+            errors.push('search_corpus (full_text): expected results for "pull-based reactivity model"');
+        } else if (!searchFullTextParsed[0].snippet?.includes('pull-based')) {
+            errors.push('search_corpus (full_text): expected snippet containing match phrase');
+        }
+
     } finally {
         serverProc.kill('SIGTERM');
         await new Promise((r) => setTimeout(r, 200));
@@ -433,7 +482,7 @@ async function runTests() {
         return;
     }
 
-    console.log('MCP integration tests passed (25 checks).');
+    console.log('MCP integration tests passed (28 checks).');
 }
 
 runTests().catch((err) => {
