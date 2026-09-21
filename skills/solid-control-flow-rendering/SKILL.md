@@ -7,6 +7,7 @@ outputs:
 requires_references:
   - ../../references/solidjs-normalized/manifest.jsonl
   - ../../references/solidjs/control-flow.md
+  - references/control-flow-guide.md
 validation_commands:
   - node tools/scripts/validate-skills.mjs --skill solid-control-flow-rendering
   - node tools/scripts/validate-solid-corpus.mjs
@@ -16,26 +17,30 @@ validation_commands:
 
 ## Trigger
 
-Use when deciding between `<Show>`, `<For>`, `<Index>`, `<Switch>/<Match>`, `<Suspense>`, and related rendering primitives.
+Use when deciding between SolidJS 1.x control flow primitives: `<Show>`, `<For>`, `<Index>`, `<Switch>/<Match>`, `<Portal>`, `<Dynamic>`, and `<Suspense>`.
 
 ## Required Inputs
 
-- Branching conditions and list identity expectations.
-- Async rendering expectations.
-- SSR/hydration and accessibility constraints.
+- Branching conditions and list data structure (objects vs primitives).
+- Reordering and mutation characteristics.
+- Empty states, loading boundaries, and accessibility fallback expectations.
 
 ## Workflow
 
-1. Map each branch/list requirement to a specific control-flow primitive.
-2. Declare fallback rendering for loading and empty states.
-3. Validate list key/identity assumptions and update behavior.
-4. Provide handoff notes for macro skill implementation or review.
+1. Map collection rendering by item type:
+   - Use `<For>` for object arrays with unique IDs/identities (`(item, index) => ...`, where item is raw object, index is a signal).
+   - Use `<Index>` for primitive arrays (`(item, index) => ...`, where item is a signal, index is raw number).
+2. Replace JSX ternary conditions:
+   - Use `<Show when={...} fallback={...}>` for binary conditionals.
+   - Use `<Switch>` and `<Match>` for multi-case logic instead of nested ternaries.
+3. Wrap asynchronous resource rendering in `<Suspense fallback={<Spinner />}>`.
+4. Teleport overlays, dropdowns, and dialogs with `<Portal>` to ensure correct DOM stacking context.
 
 ## Failure Modes
 
-- Ternary nesting for multi-branch logic: replace with `Switch/Match` guidance.
-- List identity ambiguity: block completion until key semantics are clear.
-- Async branch without fallback: add explicit fallback path.
+- Nested ternaries used in JSX: reject as anti-pattern; enforce `<Switch>` / `<Match>`.
+- Using `<Index>` for objects with persistent IDs or `<For>` for volatile primitive arrays without rationale.
+- Async boundaries without explicit fallback UI.
 
 ## Output Contract
 
@@ -58,6 +63,7 @@ Use these `doc_id` values with the `read_corpus_doc` MCP tool:
 
 ## References
 
+- `references/control-flow-guide.md`
 - `../../references/solidjs/control-flow.md`
 - `../../references/solidjs-normalized/docs/reference/components/show.md`
 - `../../references/solidjs-normalized/docs/reference/components/for.md`

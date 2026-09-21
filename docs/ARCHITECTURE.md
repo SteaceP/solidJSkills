@@ -14,9 +14,10 @@ Provide a practical operating system for SolidJS engineering work with strict co
 
 ## Blueprint
 
-* `guides/solidjs-v2-blueprint.md`
+* `guides/solidjs-v2-blueprint.md` (Repository Architecture Phase 2)
+* `guides/solidjs-v2-rc-guide.md` (SolidJS 2.0-rc.9 Framework Architecture & Migration)
 
-## v2 Architecture
+## Repository Platform v2 Architecture
 
 ### Macro skills
 
@@ -73,4 +74,4 @@ node tools/scripts/run-smoke-evals.mjs
 
 ## Legacy note
 
-Non-Solid meta skills remain in `skills/` for repository maintenance tasks, but SolidJS v2 skills and corpus tooling are the default operating path.
+Non-Solid meta skills remain in `skills/` for repository maintenance tasks, while the 18 SolidJS skills (targeting SolidJS 1.x production with 2.0-rc preview coverage) and corpus tooling are the default operating path.

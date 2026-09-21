@@ -8,6 +8,7 @@ requires_references:
   - ../../references/solidjs-normalized/manifest.jsonl
   - ../../references/solidjs/accessibility-a11y.md
   - ../../references/solidjs/reactivity-core.md
+  - references/a11y-patterns-guide.md
 validation_commands:
   - node tools/scripts/validate-skills.mjs --skill solid-accessibility-a11y
   - node tools/scripts/validate-solid-corpus.mjs
@@ -75,6 +76,7 @@ Use these `doc_id` values with the `read_corpus_doc` MCP tool:
 
 ## References
 
+- `references/a11y-patterns-guide.md`
 - `../../references/solidjs/accessibility-a11y.md`
 - `../../references/solidjs/reactivity-core.md`
 - `../../references/solidjs-normalized/manifest.jsonl`

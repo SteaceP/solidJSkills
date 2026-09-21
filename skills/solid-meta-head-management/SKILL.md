@@ -7,6 +7,7 @@ outputs:
 requires_references:
   - ../../references/solidjs-normalized/manifest.jsonl
   - ../../references/solidjs-normalized/taxonomy.json
+  - references/meta-head-guide.md
 validation_commands:
   - node tools/scripts/validate-skills.mjs --skill solid-meta-head-management
   - node tools/scripts/validate-solid-corpus.mjs
@@ -16,26 +17,26 @@ validation_commands:
 
 ## Trigger
 
-Use for metadata strategy with `MetaProvider`, `Title`, `Meta`, `Link`, `Style`, and related head composition requirements.
+Use for head metadata strategy using `@solidjs/meta`: `<MetaProvider>`, `<Title>`, `<Meta>`, `<Link>`, and `<Style>` across route and layout boundaries.
 
 ## Required Inputs
 
-- Route/layout metadata ownership boundaries.
-- SSR and client update expectations.
-- SEO and social metadata requirements.
+- Route/layout metadata hierarchy (root defaults vs page overrides).
+- SSR streaming vs static extraction requirements.
+- SEO, OpenGraph, Twitter card, and canonical link specifications.
 
 ## Workflow
 
-1. Define metadata ownership hierarchy across app/layout/route boundaries.
-2. Choose solid-meta primitives for each metadata type.
-3. Document SSR-safe update expectations and collision handling.
-4. Provide handoff to macro skill with testable metadata assertions.
+1. Place `<MetaProvider>` at root/layout boundary in `App.tsx` or `entry-server.tsx`.
+2. Define base fallback tags (`<Title>`, `<Meta name="description">`) at root.
+3. Apply fine-grained reactive overrides in child routes using reactive props/signals.
+4. Verify SSR extraction: confirm head tags render in `<head>` and stream with `{assets}` in SolidStart without layout shift.
 
 ## Failure Modes
 
-- Multiple owners for same metadata field without precedence: resolve precedence first.
-- Missing SSR behavior note: output invalid.
-- Metadata changes without validation checks: add checks before completion.
+- Multiple owners for same metadata field without precedence: enforce child-route precedence.
+- Unwrapped meta tags: ensure all head tags are contained within `<MetaProvider>`.
+- Non-reactive meta tags with dynamic content: ensure title/content bindings use reactive accessor values.
 
 ## Output Contract
 
@@ -58,6 +59,7 @@ Use these `doc_id` values with the `read_corpus_doc` MCP tool:
 
 ## References
 
+- `references/meta-head-guide.md`
 - `../../references/solidjs-normalized/docs/solid-meta/reference/meta/metaprovider.md`
 - `../../references/solidjs-normalized/docs/solid-meta/reference/meta/title.md`
 - `../../references/solidjs-normalized/docs/solid-meta/reference/meta/meta.md`

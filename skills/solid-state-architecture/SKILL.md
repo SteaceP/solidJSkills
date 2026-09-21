@@ -7,6 +7,7 @@ outputs:
 requires_references:
   - ../../references/solidjs-normalized/manifest.jsonl
   - ../../references/solidjs/stores-context.md
+  - references/stores-context-guide.md
 validation_commands:
   - node tools/scripts/validate-skills.mjs --skill solid-state-architecture
   - node tools/scripts/validate-solid-corpus.mjs
@@ -16,26 +17,31 @@ validation_commands:
 
 ## Trigger
 
-Use when deciding local vs shared state, context boundaries, store shape, and update pathways.
+Use when designing SolidJS state ownership: choosing between local signals, fine-grained nested stores (`createStore`), mutation patterns (`produce`, `reconcile`), and Context API boundaries.
 
 ## Required Inputs
 
-- Domain entities and update paths.
-- Component tree boundaries.
-- Cross-tree dependency requirements.
+- State shape, nesting depth, and collection sizes.
+- Update pathways (local UI toggle vs shared cross-tree cache).
+- Consumer components and provider tree boundaries.
 
 ## Workflow
 
-1. Assign state scope: local signal, structured store, or context provider.
-2. Document provider boundaries and mutation pathways.
-3. Identify hidden coupling risks and propose boundary refactors.
-4. Hand off explicit ownership map to macro skill.
+1. Assign state scope:
+   - Use `createSignal` for local primitives, flags, counters, and single form inputs.
+   - Use `createStore` for deep objects, models, and array collections requiring fine-grained property updates.
+   - Use `createContext` + Custom Hook (`useDomain()`) for cross-tree shared state.
+2. Select store mutation strategy:
+   - Use path-based updates for targeted field mutations: `setState("path", "to", "key", val)`.
+   - Use `produce` for complex array alterations.
+   - Use `reconcile` when updating stores from external API responses to minimize DOM churn.
+3. Validate context ergonomics: enforce custom hooks that throw if consumed outside their provider.
 
 ## Failure Modes
 
-- Context used as default for local state: mark anti-pattern and propose local alternative.
-- Store updates without explicit mutation path: fail until path is listed.
-- Shared state without consumer boundaries: require boundary map.
+- Using Context for ephemeral local state: mark anti-pattern; recommend local signal.
+- In-place store mutation without `setState` or `produce`: reject as non-reactive.
+- Shared context without explicit consumer boundary or error handling.
 
 ## Output Contract
 
@@ -58,6 +64,7 @@ Use these `doc_id` values with the `read_corpus_doc` MCP tool:
 
 ## References
 
+- `references/stores-context-guide.md`
 - `../../references/solidjs/stores-context.md`
 - `../../references/solidjs-normalized/docs/concepts/stores.md`
 - `../../references/solidjs-normalized/docs/reference/store-utilities/create-store.md`

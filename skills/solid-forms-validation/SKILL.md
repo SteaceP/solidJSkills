@@ -8,6 +8,7 @@ requires_references:
   - ../../references/solidjs-normalized/manifest.jsonl
   - ../../references/solidjs/forms-validation.md
   - ../../references/solidjs/reactivity-core.md
+  - references/forms-validation-guide.md
 validation_commands:
   - node tools/scripts/validate-skills.mjs --skill solid-forms-validation
   - node tools/scripts/validate-solid-corpus.mjs
@@ -78,6 +79,7 @@ Use these `doc_id` values with the `read_corpus_doc` MCP tool:
 
 ## References
 
+- `references/forms-validation-guide.md`
 - `../../references/solidjs/forms-validation.md`
 - `../../references/solidjs/reactivity-core.md`
 - `../../references/solidjs-normalized/manifest.jsonl`

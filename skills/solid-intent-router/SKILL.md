@@ -5,6 +5,7 @@ outputs:
   schema: ../../skills/contracts/intent-routing-output.schema.json
   format: routing-decision-record
 requires_references:
+  - references/intent-routing-guide.md
   - ../../references/solidjs-normalized/manifest.jsonl
   - ../../tools/gemini-mcp-extension/skill-routing-map.md
 validation_commands:
@@ -26,10 +27,11 @@ Use this skill when a request could match multiple SolidJS skills and determinis
 
 ## Workflow
 
-1. Evaluate explicit package signals first (`solid-router`, `solid-start`, `solid-meta`).
-2. Apply deterministic precedence from `tools/gemini-mcp-extension/skill-routing-map.md`.
-3. Select one primary macro skill and one secondary domain subskill.
-4. If confidence is low, choose the closest macro skill and annotate missing input.
+1. Consult [intent-routing-guide.md](references/intent-routing-guide.md) to inspect macro skills and domain subskills precedence hierarchies.
+2. Evaluate explicit package signals first (`solid-router`, `solid-start`, `solid-meta`).
+3. Apply deterministic precedence from `tools/gemini-mcp-extension/skill-routing-map.md` and [intent-routing-guide.md](references/intent-routing-guide.md).
+4. Select one primary macro skill (e.g. `solid-component-builder`, `solid-refactor-assistant`, `solid-reviewer`, `solid-scaffold-bootstrap`, `solid-design-patterns`) and one secondary domain subskill.
+5. If confidence is low, choose the closest macro skill and annotate missing input.
 
 ## Failure Modes
 
@@ -57,6 +59,7 @@ Use these `doc_id` values with the `read_corpus_doc` MCP tool:
 
 ## References
 
+- `references/intent-routing-guide.md`
 - `../../tools/gemini-mcp-extension/skill-routing-map.md`
 - `../../references/solidjs-normalized/manifest.jsonl`
 - `../../references/solidjs-normalized/taxonomy.json`

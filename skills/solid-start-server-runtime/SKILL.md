@@ -7,6 +7,7 @@ outputs:
 requires_references:
   - ../../references/solidjs-normalized/manifest.jsonl
   - ../../references/solidjs-normalized/taxonomy.json
+  - references/solidstart-runtime-guide.md
 validation_commands:
   - node tools/scripts/validate-skills.mjs --skill solid-start-server-runtime
   - node tools/scripts/validate-solid-corpus.mjs
@@ -16,26 +17,28 @@ validation_commands:
 
 ## Trigger
 
-Use for SolidStart server runtime concerns: handlers, middleware, server functions, request event usage, and response behavior.
+Use for SolidStart 1.0 server runtime concerns: HTTP handlers (`createHandler`), middleware composition (`createMiddleware`), server RPC functions (`"use server"`), `getRequestEvent()`, and streaming responses.
 
 ## Required Inputs
 
-- Server runtime target and deployment constraints.
-- Route/API behavior and auth/session requirements.
-- Error/status/header handling expectations.
+- Server runtime target (Node, Cloudflare Workers, Netlify, Vercel).
+- Route/API contract and auth/session dependencies.
+- Header, cookie, redirect, and status code requirements.
 
 ## Workflow
 
-1. Map endpoint responsibilities to SolidStart server primitives.
-2. Select middleware boundaries and request event usage.
-3. Define response/status/header semantics and failure handling.
-4. Produce handoff notes for implementation and security checks.
+1. Configure server entrypoint in `entry-server.tsx` using `createHandler()` and `StartServer`.
+2. Define server functions with `"use server"` for type-safe client-to-server RPC:
+   - Ensure arguments and return types are JSON/FormData serializable.
+   - Access request cookies and headers safely via `getRequestEvent()`.
+3. Compose request interceptors using `createMiddleware` for auth, telemetry, and rate limiting.
+4. Establish clear security boundaries: never leak private database credentials or API secrets across `"use server"` boundaries into client bundles.
 
 ## Failure Modes
 
-- Runtime/deployment target unspecified: request target before decisions.
-- Mixed client/server concerns without boundaries: enforce boundary split.
-- Missing auth/session model for protected endpoints: block completion.
+- Runtime/deployment target unspecified: request target before finalizing server config.
+- Mixed client/server concerns without boundaries: enforce explicit `"use server"` separation.
+- Missing auth/session model for protected endpoints: block completion until security boundary exists.
 
 ## Output Contract
 
@@ -58,6 +61,7 @@ Use these `doc_id` values with the `read_corpus_doc` MCP tool:
 
 ## References
 
+- `references/solidstart-runtime-guide.md`
 - `../../references/solidjs-normalized/docs/solid-start/reference/server/create-handler.md`
 - `../../references/solidjs-normalized/docs/solid-start/reference/server/create-middleware.md`
 - `../../references/solidjs-normalized/docs/solid-start/reference/server/use-server.md`

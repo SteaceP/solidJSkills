@@ -8,6 +8,7 @@ requires_references:
   - ../../references/solidjs-normalized/manifest.jsonl
   - ../../references/solidjs/primitives-ecosystem.md
   - ../../references/solidjs/reactivity-core.md
+  - references/primitives-ecosystem-guide.md
 validation_commands:
   - node tools/scripts/validate-skills.mjs --skill solid-primitives-ecosystem
   - node tools/scripts/validate-solid-corpus.mjs
@@ -68,6 +69,7 @@ Use these `doc_id` values with the `read_corpus_doc` MCP tool:
 
 ## References
 
+- `references/primitives-ecosystem-guide.md`
 - `../../references/solidjs/primitives-ecosystem.md`
 - `../../references/solidjs/reactivity-core.md`
 - `../../references/solidjs-normalized/manifest.jsonl`

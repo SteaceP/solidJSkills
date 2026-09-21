@@ -7,6 +7,7 @@ outputs:
 requires_references:
   - ../../references/solidjs-normalized/manifest.jsonl
   - ../../references/solidjs-normalized/taxonomy.json
+  - references/review-guide.md
 validation_commands:
   - node tools/scripts/validate-skills.mjs --skill solid-reviewer
   - node tools/scripts/validate-output-contracts.mjs
@@ -16,22 +17,27 @@ validation_commands:
 
 ## Trigger
 
-Use this skill for PR/diff audits where findings must be prioritized and mapped to concrete remediation.
+Use this skill for code review and PR audits of SolidJS code: verifying reactivity correctness, finding prop destructuring anti-patterns, evaluating control flow performance, catching SSR hydration mismatches, and prioritizing findings by severity.
 
 ## Required Inputs
 
-- Diff or changed files.
-- Runtime context (client, SSR, SolidStart server usage if applicable).
-- Known risk constraints (performance budget, accessibility requirements, release urgency).
+- Diff, pull request context, or changed files.
+- Runtime target (client SPA, SSR, or SolidStart).
+- Quality constraints (performance budgets, accessibility, release urgency).
 
 ## Workflow
 
-1. Triage by severity in strict order: correctness, performance, maintainability, accessibility.
-2. Validate reactive boundaries first: derivations vs effects, dependency explosion, stale closures.
-3. Evaluate control flow and async completeness (`loading`, `empty`, `error`, `success`).
-4. Check SSR/hydration and browser-only assumptions in render paths.
-5. Ensure every finding includes file reference and concrete fix direction.
-6. Return validation commands relevant to touched surface.
+1. Triage by severity in strict order: correctness (P0), performance (P1), maintainability (P2), accessibility (P3).
+2. Audit reactivity invariants:
+   - Flag props destructuring (`const { val } = props`).
+   - Flag effects used to compute state (`createEffect(() => setX(y()))`).
+   - Verify signal invocations in JSX (`{count()}`).
+3. Check control flow and performance:
+   - Validate `<For>` vs `<Index>` usage based on object identity vs primitive values.
+   - Enforce `<Switch>/<Match>` over nested JSX ternaries.
+   - Check for repeated `props.children` access without `children()` helper.
+4. Verify SSR & hydration safety: ensure browser globals are guarded by `onMount()`.
+5. Map every finding to an exact file anchor, severity level, and concrete remediation code.
 
 ## Failure Modes
 
@@ -55,6 +61,7 @@ Return output matching `ReviewOutput` schema at `../../skills/contracts/review-o
 
 ## References
 
+- `references/review-guide.md`
 - `../../references/solidjs-normalized/manifest.jsonl`
 - `../../references/solidjs-normalized/taxonomy.json`
 - `../../references/solidjs/review-checklist.md`

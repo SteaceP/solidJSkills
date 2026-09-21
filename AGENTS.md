@@ -15,6 +15,10 @@ Treat this repository as SolidJS-first. Prefer creating or updating SolidJS skil
 
 ## SolidJS Coding and Design Standards
 
+- **Target Framework Version**: Default to **SolidJS 1.x (Production Stable)**. Check `package.json` for `"solid-js"` version:
+  - If `^1.x`: strictly enforce 1.x conventions (`createSignal` accessors `count()`, tuple setters, `createResource`, `<Index>` for primitives, `<Suspense fallback={...}>`, `<Dynamic component={...}>`).
+  - If `^2.0.0-rc` / `^2.0.0`: apply 2.0-rc conventions (first-class async graph, `<For keyed={false}>`, `<Loading>`/`<Errored>`, `dynamic()`).
+  - Prohibit mixing v1 and v2 APIs in the same component or guidance output.
 - Prefer fine-grained reactivity primitives intentionally (`createSignal`, `createMemo`, `createEffect`, `createResource`, `batch`, `untrack`).
 - Avoid unnecessary effects when derivation is sufficient.
 - Keep side effects explicit and isolated.

@@ -8,6 +8,7 @@ requires_references:
   - ../../references/solidjs-normalized/manifest.jsonl
   - ../../references/solidjs/animation-transitions.md
   - ../../references/solidjs/reactivity-core.md
+  - references/animation-guide.md
 validation_commands:
   - node tools/scripts/validate-skills.mjs --skill solid-animation-transitions
   - node tools/scripts/validate-solid-corpus.mjs
@@ -75,6 +76,7 @@ Use these `doc_id` values with the `read_corpus_doc` MCP tool:
 
 ## References
 
+- `references/animation-guide.md`
 - `../../references/solidjs/animation-transitions.md`
 - `../../references/solidjs/reactivity-core.md`
 - `../../references/solidjs-normalized/manifest.jsonl`

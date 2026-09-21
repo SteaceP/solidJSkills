@@ -12,7 +12,7 @@ This is a collection of SolidJS-focused skills, guides, and documentation design
 
 When you connect your AI agent to this, it gets:
 
-- **SolidJS knowledge**: Guides and references for SolidJS v2 patterns, reactivity, routing, SSR, etc.
+- **SolidJS knowledge**: Guides and references for SolidJS 1.x production patterns (reactivity, routing, SSR, etc.) along with SolidJS 2.0-rc.9 preview and migration paths
 - **Specific skills**: Workflows for refactoring, testing, building components, reviewing code, and scaffolding projects
 - **Validation tools**: Scripts to check that code follows SolidJS best practices
 

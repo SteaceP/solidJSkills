@@ -1,4 +1,7 @@
-# SolidJS Skills Repository: v1 Concrete Blueprint
+# solidJSkills Repository Blueprint: Phase 1 (MVP Baseline)
+
+> [!NOTE]
+> **Repository Architecture Milestone**: This document outlines the Phase 1 MVP architecture of the `solidJSkills` repository (the initial 5 skills and shared references). It is not a guide for SolidJS framework versioning. For framework differences between SolidJS 1.x (stable) and SolidJS 2.0-rc.9, see [SolidJS 2.0 RC Guide](solidjs-v2-rc-guide.md).
 
 ## 1) Target State
 

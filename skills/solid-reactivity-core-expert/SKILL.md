@@ -7,6 +7,7 @@ outputs:
 requires_references:
   - ../../references/solidjs-normalized/manifest.jsonl
   - ../../references/solidjs/reactivity-core.md
+  - references/reactivity-rules-guide.md
 validation_commands:
   - node tools/scripts/validate-skills.mjs --skill solid-reactivity-core-expert
   - node tools/scripts/validate-solid-corpus.mjs
@@ -16,26 +17,33 @@ validation_commands:
 
 ## Trigger
 
-Use for reactivity correctness decisions involving `createSignal`, `createMemo`, `createEffect`, `createResource`, `batch`, `untrack`.
+Use for fine-grained reactivity decisions in SolidJS 1.x: choosing between `createSignal`, `createMemo`, `createEffect`, `createResource`, `batch`, and `untrack`, and preventing reactive leaks.
 
 ## Required Inputs
 
-- State ownership and mutation boundaries.
-- Current or planned derivations.
-- Side effects and async behavior.
+- State ownership hierarchy and mutation frequency.
+- Derived computations and dependency trees.
+- External side-effect boundaries and async fetch operations.
 
 ## Workflow
 
-1. Classify each reactive operation as state, derivation, side effect, or async boundary.
-2. Replace effect-driven derivations with memo/signal derivations when possible.
-3. Confirm dependency tracking is minimal and explicit.
-4. Provide handoff notes to macro skill for implementation/refactor/review.
+1. Classify each reactive operation:
+   - **State Source**: `createSignal()` (or `createStore()` for deep objects).
+   - **Derived Value**: Pure function `() => a() + b()` for cheap math/strings; `createMemo()` for expensive calculations or referential stability.
+   - **Side Effect**: `createEffect()` strictly for external sync (DOM mutation, logging, network).
+   - **Async Boundary**: `createResource()` with Suspense integration.
+2. Eliminate anti-patterns:
+   - Refactor effect-driven signal setters (`createEffect(() => setX(y()))`) into pure derivations or memos.
+   - Guard against prop destructuring (`const { val } = props` destroys reactivity; use `props.val` or `splitProps`).
+   - Confirm signals inside JSX are invoked (`{count()}`).
+3. Group multi-signal mutations in event handlers with `batch(() => { ... })`.
+4. Produce validation checklist with normalized citations.
 
 ## Failure Modes
 
-- Unknown state ownership: require explicit owner boundary.
-- Effect loops detected: mark as blocking issue and propose memo-driven rewrite.
-- Async without loading/error semantics: add resource state matrix.
+- Effect used to compute derived state: mark blocking anti-pattern and refactor to `createMemo`.
+- Props destructuring detected: replace with `splitProps` or direct property access.
+- Asynchronous untracked signal access: enforce synchronous reading before `await` points or encapsulate in `createResource`.
 
 ## Output Contract
 
@@ -58,6 +66,7 @@ Use these `doc_id` values with the `read_corpus_doc` MCP tool:
 
 ## References
 
+- `references/reactivity-rules-guide.md`
 - `../../references/solidjs/reactivity-core.md`
 - `../../references/solidjs-normalized/manifest.jsonl`
 - `../../references/solidjs-normalized/docs/reference/basic-reactivity/create-signal.md`

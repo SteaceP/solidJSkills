@@ -1,4 +1,7 @@
-# SolidJS Skills Repository: v2 Deterministic Blueprint
+# solidJSkills Repository Blueprint: Phase 2 (Deterministic MCP Platform)
+
+> [!NOTE]
+> **Repository Architecture Milestone**: This document describes Phase 2 of the `solidJSkills` repository platform (18 deterministic skills, normalized docs corpus, output contracts, and MCP server). It is not a guide for SolidJS framework versioning. For framework differences between SolidJS 1.x (stable) and SolidJS 2.0-rc.9, see [SolidJS 2.0 RC Guide](solidjs-v2-rc-guide.md).
 
 ## Target state
 

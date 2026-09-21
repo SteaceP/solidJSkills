@@ -5,6 +5,7 @@ outputs:
   schema: ../../skills/contracts/design-decision-output.schema.json
   format: option-matrix-plus-adoption-plan
 requires_references:
+  - references/design-patterns-guide.md
   - ../../references/solidjs-normalized/manifest.jsonl
   - ../../references/solidjs-normalized/taxonomy.json
 validation_commands:
@@ -27,11 +28,12 @@ Use this skill for architecture decisions where multiple SolidJS patterns are vi
 
 ## Workflow
 
-1. Frame decision boundaries and non-negotiable constraints.
-2. Compare 2-3 options with explicit fit/cost profile.
-3. Call out anti-patterns and regression risks for each option.
-4. Recommend one option with phased adoption path.
-5. Include validation commands and measurable acceptance criteria.
+1. Consult [design-patterns-guide.md](references/design-patterns-guide.md) for state topology decision matrix and canonical pattern structures.
+2. Frame decision boundaries and non-negotiable constraints.
+3. Compare 2-3 options with explicit fit/cost profile and SSR multi-tenancy implications.
+4. Call out anti-patterns and regression risks for each option.
+5. Recommend one option with phased adoption path.
+6. Include validation commands and measurable acceptance criteria.
 
 ## Failure Modes
 
@@ -55,6 +57,7 @@ Return output matching `DesignDecisionOutput` schema at `../../skills/contracts/
 
 ## References
 
+- `references/design-patterns-guide.md`
 - `../../references/solidjs-normalized/manifest.jsonl`
 - `../../references/solidjs-normalized/taxonomy.json`
 - `../../references/solidjs/stores-context.md`
