@@ -1,6 +1,6 @@
 {
   "name": "solidjskills",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Browse solidJSkills docs from Gemini CLI via MCP tools.",
   "contextFileName": "GEMINI.md",
   "mcpServers": {

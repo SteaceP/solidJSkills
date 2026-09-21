@@ -1,6 +1,6 @@
 {
     "name": "solidjskills-root",
-    "version": "1.2.4",
+    "version": "1.2.5",
     "description": "Root package for SolidJSkills repository tooling",
     "type": "module",
     "scripts": {
