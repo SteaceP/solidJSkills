@@ -349,6 +349,53 @@ async function runTests() {
             errors.push(`read_doc (missing file): expected isError and not found message, got: ${JSON.stringify(readDocMissingResp)}`);
         }
 
+        // 20. List resources (solid://manifest, solid://taxonomy, solid://skills)
+        const listResId = reqId++;
+        sendJsonRpc(serverProc, 'resources/list', {}, listResId);
+        const listResResp = await waitForResponse(serverProc, listResId);
+        const resourceUris = (listResResp.result?.resources || []).map((r) => r.uri);
+        const expectedResources = ['solid://manifest', 'solid://taxonomy', 'solid://skills'];
+        for (const uri of expectedResources) {
+            if (!resourceUris.includes(uri)) {
+                errors.push(`resources/list: missing resource '${uri}', got: ${JSON.stringify(resourceUris)}`);
+            }
+        }
+
+        // 21. List resource templates (solid://docs/{docId}, solid://skills/{skillName})
+        const listResTmplId = reqId++;
+        sendJsonRpc(serverProc, 'resources/templates/list', {}, listResTmplId);
+        const listResTmplResp = await waitForResponse(serverProc, listResTmplId);
+        const tmplUris = (listResTmplResp.result?.resourceTemplates || []).map((t) => t.uriTemplate);
+        if (!tmplUris.some((u) => u.includes('solid://docs/'))) {
+            errors.push('resources/templates/list: missing solid://docs/{docId} template');
+        }
+        if (!tmplUris.some((u) => u.includes('solid://skills/'))) {
+            errors.push('resources/templates/list: missing solid://skills/{skillName} template');
+        }
+
+        // 22. Read static resource solid://manifest
+        const readManifestResId = reqId++;
+        sendJsonRpc(serverProc, 'resources/read', { uri: 'solid://manifest' }, readManifestResId);
+        const readManifestResResp = await waitForResponse(serverProc, readManifestResId);
+        const manifestResText = readManifestResResp.result?.contents?.[0]?.text || '';
+        try {
+            const parsedManifestRes = JSON.parse(manifestResText);
+            if (!parsedManifestRes.count || parsedManifestRes.count < 100) {
+                errors.push('resources/read: solid://manifest missing or invalid count');
+            }
+        } catch {
+            errors.push('resources/read: solid://manifest content is not valid JSON');
+        }
+
+        // 23. Read template resource solid://docs/solid-core.reference.basic-reactivity.create-signal
+        const readDocResId = reqId++;
+        sendJsonRpc(serverProc, 'resources/read', { uri: 'solid://docs/solid-core.reference.basic-reactivity.create-signal' }, readDocResId);
+        const readDocResResp = await waitForResponse(serverProc, readDocResId);
+        const docResText = readDocResResp.result?.contents?.[0]?.text || '';
+        if (!docResText.includes('createSignal')) {
+            errors.push('resources/read: solid://docs/... template failed to return doc content');
+        }
+
     } finally {
         serverProc.kill('SIGTERM');
         await new Promise((r) => setTimeout(r, 200));
@@ -362,7 +409,7 @@ async function runTests() {
         return;
     }
 
-    console.log('MCP integration tests passed (19 checks).');
+    console.log('MCP integration tests passed (23 checks).');
 }
 
 runTests().catch((err) => {
