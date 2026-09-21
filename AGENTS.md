@@ -78,7 +78,7 @@ When interacting with the repository or answering SolidJS questions, prioritize 
 
 - **Skill Routing**: Call `route_solid_intent` to determine the primary skill, domain subskill, confidence score, and rationale for any prompt.
 - **Framework Version Detection**: Call `detect_solid_version` with `package.json` or code snippet to verify targeted version conventions (1.x vs 2.0-rc.9), approved/forbidden primitives, and detect prohibited version mixing.
-- **Static Code Auditing**: Call `audit_solid_code` to detect prop destructuring, effect writing to signals, uncalled accessors, memo mutations, untracked prop copies, SSR client globals, and mixed v1/v2 syntax.
+- **Static Code Auditing**: Call `audit_solid_code` to detect prop destructuring, effect writing to signals, uncalled accessors, memo mutations, untracked prop copies, SSR client globals, async effect tracking loss, self-looping effects, missing memo returns, direct store mutations, and mixed v1/v2 syntax.
 - **API Resolution**: Call `resolve_solid_api` with symbol names (e.g. `createSignal`, `createAsync`, `dynamic`) for direct, authoritative documentation links.
 - **Corpus Retrieval**: Call `search_corpus` (supports `full_text: true`) or `read_corpus_doc` by `doc_id` to read normalized SolidJS documentation.
 - **Repository Checklists**: Call `get_solid_checklist` (`type='review'` or `type='contracts'`) for live evaluation criteria.

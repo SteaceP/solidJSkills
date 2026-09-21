@@ -519,6 +519,73 @@ export function auditSolidCode(code) {
     }
   }
 
+  // 10. Async callback passed to createEffect
+  const asyncEffectRegex = /createEffect\s*\(\s*async\s*(?:\([^)]*\)|[A-Za-z0-9_]+|\(\s*\)|function\b)/g;
+  if (asyncEffectRegex.test(code)) {
+    issues.push({
+      rule: 'async-effect-loss',
+      severity: 'warning',
+      message: 'Detected async function passed to createEffect. In SolidJS, reactive tracking is purely synchronous; any signal access after the first "await" drops reactive subscriptions and will not re-trigger the effect.',
+      recommendation: 'Keep createEffect synchronous. For asynchronous data workflows, use createResource in Solid 1.x or native async memos in Solid 2.0.'
+    });
+  }
+
+  // 11. Self-triggering effect loop (reading and writing the same signal in createEffect without untrack)
+  const effectBlockRegex = /createEffect\s*\(\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z0-9_]+)?\s*=>\s*\{([^}]*)\}/g;
+  let efMatch;
+  while ((efMatch = effectBlockRegex.exec(code)) !== null) {
+    const efBody = efMatch[1];
+    if (!/\buntrack\b/.test(efBody)) {
+      const setterCallRegex = /\bset([A-Z0-9_][A-Za-z0-9_]*)\s*\(/g;
+      let setMatch;
+      while ((setMatch = setterCallRegex.exec(efBody)) !== null) {
+        const capitalized = setMatch[1];
+        const getterName = capitalized.charAt(0).toLowerCase() + capitalized.slice(1);
+        const getterCallRegex = new RegExp(`\\b${getterName}\\s*\\(`, 'g');
+        if (getterCallRegex.test(efBody)) {
+          issues.push({
+            rule: 'effect-self-loop',
+            severity: 'error',
+            message: `Detected signal '${getterName}' being read and written ('set${capitalized}') in the same createEffect without 'untrack()'. This can cause an immediate infinite reactive loop.`,
+            recommendation: `Wrap the signal read in untrack(() => ${getterName}()) or use createMemo if deriving state.`
+          });
+          break;
+        }
+      }
+    }
+  }
+
+  // 12. createMemo computation block without a return statement
+  const memoBlockRegex = /createMemo\s*\(\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z0-9_]+)?\s*=>\s*\{([^}]*)\}/g;
+  let mbMatch;
+  while ((mbMatch = memoBlockRegex.exec(code)) !== null) {
+    const mbBody = mbMatch[1].trim();
+    if (!/\breturn\b/.test(mbBody)) {
+      issues.push({
+        rule: 'missing-memo-return',
+        severity: 'error',
+        message: 'createMemo computation block "{ ... }" does not contain a return statement. In SolidJS, memos must return a derived computation value.',
+        recommendation: 'Return a computed value from the createMemo callback, or use expression syntax without braces: createMemo(() => derivation).'
+      });
+    }
+  }
+
+  // 13. Direct store property mutation
+  const storeDeclRegex = /const\s*\[\s*([A-Za-z0-9_]+)\s*,\s*set[A-Za-z0-9_]+\s*\]\s*=\s*createStore\b/g;
+  let stMatch;
+  while ((stMatch = storeDeclRegex.exec(code)) !== null) {
+    const storeIdent = stMatch[1];
+    const directMutationRegex = new RegExp(`\\b${storeIdent}\\.[A-Za-z0-9_.]+\\s*=(?!=)`, 'g');
+    if (directMutationRegex.test(code)) {
+      issues.push({
+        rule: 'no-direct-store-mutation',
+        severity: 'error',
+        message: `Directly mutating store proxy '${storeIdent}' via property assignment. SolidJS stores wrap objects in reactive proxies; direct assignment does not notify subscribers or trigger updates.`,
+        recommendation: `Use the store setter: set${storeIdent.charAt(0).toUpperCase() + storeIdent.slice(1)}('path', 'to', 'key', value) or produce().`
+      });
+    }
+  }
+
   const score = issues.filter((i) => i.severity === 'error').length === 0 ? (issues.length === 0 ? 100 : 85) : Math.max(30, 80 - issues.length * 20);
 
   return {

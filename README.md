@@ -72,7 +72,7 @@ The `solidjskills` server exposes 11 tools accessible to any MCP client:
 6. `search_corpus`: Ranked manifest-backed search using headings, tags, symbols, and topics (supports `full_text: true`).
 7. `resolve_solid_api`: Resolve a Solid API symbol (e.g. `createSignal`, `createMemo`, `Loading`, `dynamic`) directly to authoritative documentation.
 8. `route_solid_intent`: Deterministically route user requirements to primary and secondary skills with confidence score and rationale.
-9. `audit_solid_code`: Statically analyze SolidJS code snippets for prop destructuring, effect misuse, memo signal mutations, untracked prop copies, SSR client global leaks, uninvoked signals, and mixed v1/v2 API anti-patterns.
+9. `audit_solid_code`: Statically analyze SolidJS code snippets for prop destructuring, effect misuse, memo signal mutations, untracked prop copies, SSR client global leaks, uninvoked signals, async effect tracking loss, self-looping effects, missing memo returns, direct store mutations, and mixed v1/v2 API anti-patterns.
 10. `get_solid_checklist`: Retrieve AGENTS.md verification criteria (`type='review'`) or output schemas (`type='contracts'`).
 11. `detect_solid_version`: Analyze `package.json` and/or code snippets to detect target SolidJS framework version (1.x Production Stable vs 2.0-rc.9), return approved/forbidden primitives, and enforce zero version mixing.
 
@@ -216,6 +216,7 @@ npm run validate:corpus     # Validates 233 normalized docs in manifest.jsonl
 npm run validate:skills     # Validates all 18 solid skill definitions and contracts
 npm run validate:contracts  # Validates JSON schema contracts
 npm run smoke               # Executes intent router and skill smoke evaluations
+npm run audit -- <path>     # Statically audits SolidJS files/directories for reactivity anti-patterns
 npm run test:integration    # Executes MCP server integration suite (41 checks)
 ```
 

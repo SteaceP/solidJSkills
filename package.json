@@ -12,6 +12,7 @@
         "validate:contracts": "node tools/scripts/validate-output-contracts.mjs",
         "normalize": "node tools/scripts/normalize-solid-docs.mjs",
         "smoke": "node tools/scripts/run-smoke-evals.mjs",
+        "audit": "node tools/scripts/audit-solid-code.mjs",
         "scaffold": "node tools/scripts/scaffold-skill.mjs",
         "release": "node tools/scripts/release.mjs",
         "release:patch": "node tools/scripts/release.mjs patch",
