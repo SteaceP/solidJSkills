@@ -41,6 +41,24 @@ When you connect your AI agent to this, it gets:
 
 ---
 
+## SolidJS Coding & Design Standards
+
+The MCP server tools, skills, and prompts enforce these core SolidJS architectural standards:
+
+- **Reactivity & State Management**:
+  - **Never Destructure Props**: Props in Solid are reactive proxies (`props.foo`). Destructuring strips reactivity. Access `props.propName` directly or use `splitProps`/`mergeProps`.
+  - **Derivation Over Effects**: Never use `createEffect` to synchronize or duplicate state into another signal. Use `createMemo` for derived computations.
+  - **Isolate Side Effects**: Keep `createEffect` exclusively for real DOM mutations, logging, analytics, or external subscriptions.
+  - **Children Handling**: Use `children(() => props.children)` when interacting with or memoizing children JSX to avoid repeatedly re-evaluating DOM elements.
+- **Control Flow & Rendering**:
+  - **Use Solid Control Flow Primitives**: Avoid JavaScript ternaries (`cond ? <A/> : <B/>`) or array `.map()` in JSX. Always use `<Show>`, `<For>`, `<Index>` (v1), `<Switch>`, `<Match>`, and `<Portal>`.
+  - **Keyed vs Non-Keyed Lists**: In 1.x, use `<For>` for object arrays keyed by item reference, and `<Index>` for primitive arrays. In 2.0, default `<For>` is keyed; use `<For keyed={false}>` for non-keyed index lists.
+- **Full-Stack, SSR & Hydration Safety**:
+  - **No Client Globals at Root**: Never access `window`, `document`, or `localStorage` during initial module evaluation or top-level component setup.
+  - **Hydration Boundaries**: Guard browser-only logic inside `onMount` or behind `isServer` checks from `solid-js/web`.
+
+---
+
 ## Available MCP Tools & Prompts
 
 ### 10 MCP Tools
@@ -199,6 +217,23 @@ npm run validate:contracts  # Validates JSON schema contracts
 npm run smoke               # Executes intent router and skill smoke evaluations
 npm run test:integration    # Executes MCP server integration suite (31 checks)
 ```
+
+### Automated Releases
+
+To publish a release, tag, and trigger the GitHub Actions release workflow:
+
+```bash
+# Patch bump (1.3.0 -> 1.3.1), test, tag, and push:
+npm run release:patch
+
+# Minor bump (1.3.0 -> 1.4.0):
+npm run release:minor
+
+# Major bump (1.3.0 -> 2.0.0):
+npm run release:major
+```
+
+This runs quality gates, syncs version numbers in `package.json`, `package-lock.json`, and `gemini-extension.json`, commits, creates an annotated tag, and pushes with `--follow-tags`. See the [Extension Release Guide](guides/extension-release-guide.md) for full details.
 
 ## Contributing
 
