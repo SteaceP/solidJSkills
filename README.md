@@ -53,26 +53,30 @@ The easiest way is to use the included `gemini-extension.json` file:
 **Method 2: Manual Configuration**
 
 If you prefer to configure manually, see the [GEMINI.md](GEMINI.md) file for detailed setup instructions.
-
+ 
 ## Setup with Other IDEs
 
 ### Claude Code (CLI)
 
 #### Option A: Automatic Discovery (Project Scope)
+
 This repository includes a project-scoped `.mcp.json` file at the root. When you run Claude Code inside this project directory, it will automatically detect and load the `solidjskills` MCP server.
 *(Note: Make sure you run `npm install` inside the `mcp-server` directory first!)*
 
 #### Option B: Global Configuration (User Scope)
+
 If you want to use the `solidjskills` MCP server in Claude Code across all your projects:
 
 **Method 1: Using the Claude CLI**
 Run the following command:
+
 ```bash
 claude mcp add solidjskills node /ABSOLUTE/PATH/TO/solidJSkills/mcp-server/src/index.js --scope user
 ```
 
 **Method 2: Manual Config**
 Add the server definition to your `~/.claude.json` file:
+
 ```json
 {
   "mcpServers": {
@@ -83,6 +87,7 @@ Add the server definition to your `~/.claude.json` file:
   }
 }
 ```
+
 *(Make sure to replace `/ABSOLUTE/PATH/TO/...` with the actual path to the cloned repository on your machine)*
 
 ### Windsurf / Cascade
@@ -124,7 +129,7 @@ Most MCP clients need a command to start the server. Use:
 
 Want to add new skills or improve the documentation? Here's how:
 
-1. **Adding a skill**: Create a new directory in `skills/` (e.g., `skills/solid-my-new-skill/`) and add a `SKILL.md` file. Check out `tools/templates/SKILL-template.md` for the format.
+1. **Adding a skill**: Run `npm run scaffold` or create a new directory in `skills/` (e.g., `skills/solid-my-new-skill/`) and add a `SKILL.md` file based on `tools/templates/SKILL.template.md`.
 2. **Adding documentation**: Put detailed docs in `references/`.
 3. **Improving guides**: The `guides/` directory has instructions for building skills, creating rules, and setting up workflows. Feel free to improve them or add new ones.
 
