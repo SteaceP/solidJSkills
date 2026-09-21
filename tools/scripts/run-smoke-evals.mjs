@@ -2,70 +2,13 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+import { routeSolidIntent } from '../../mcp-server/src/domain.js';
 
 const repoRoot = process.cwd();
 
 function routePrompt(prompt) {
-  const value = prompt.toLowerCase();
-
-  const rules = [
-    {
-      primary: 'solid-design-patterns',
-      secondary: 'solid-meta-head-management',
-      pattern: /(solid-meta|\bmeta\b|metadata|\bhead\b|\btitle\b|open graph|\bog:)/
-    },
-    {
-      primary: 'solid-refactor-assistant',
-      secondary: 'solid-start-server-runtime',
-      pattern: /(solid-start|use server|middleware|request event|session|auth|server function)/
-    },
-    {
-      primary: 'solid-reviewer',
-      secondary: 'solid-ssr-hydration-debugger',
-      pattern: /(hydration|\bssr\b|rendertostring|isserver|nohydration|hydrate)/
-    },
-    {
-      primary: 'solid-component-builder',
-      secondary: 'solid-router-data-navigation',
-      pattern: /(solid-router|\broute\b|navigation|\bparams\b|search params|\bquery\b|\baction\b|revalidate)/
-    },
-    {
-      primary: 'solid-design-patterns',
-      secondary: 'solid-state-architecture',
-      pattern: /(createStore|\bstore\b|\bcontext\b|shared state|provider)/i
-    },
-    {
-      primary: 'solid-component-builder',
-      secondary: 'solid-control-flow-rendering',
-      pattern: /(\bshow\b|\bfor\b|\bswitch\b|\bmatch\b|suspense|conditional|list rendering)/
-    },
-    {
-      primary: 'solid-component-builder',
-      secondary: 'solid-reactivity-core-expert',
-      pattern: /(createSignal|createMemo|createEffect|createResource|\bbatch\b|\buntrack\b|\bsignal\b|\bmemo\b|\beffect\b)/i
-    },
-    {
-      primary: 'solid-reviewer',
-      secondary: 'solid-testing-quality-gates',
-      pattern: /(\btest\b|quality gate|regression|\bchecklist\b|review this)/
-    },
-    {
-      primary: 'solid-scaffold-bootstrap',
-      secondary: 'solid-testing-quality-gates',
-      pattern: /(scaffold|bootstrap|new app|setup)/
-    }
-  ];
-
-  for (const rule of rules) {
-    if (rule.pattern.test(value)) {
-      return { primary: rule.primary, secondary: rule.secondary };
-    }
-  }
-
-  return {
-    primary: 'solid-component-builder',
-    secondary: 'solid-reactivity-core-expert'
-  };
+  const result = routeSolidIntent(prompt);
+  return { primary: result.primary_skill, secondary: result.secondary_skill };
 }
 
 async function checkRoutingFixtures(errors) {

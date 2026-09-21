@@ -107,7 +107,110 @@ export function routeSolidIntent(prompt, runtimeHint = '') {
     };
   }
 
-  // Rule 5: refactor / migrate / upgrade / conversion / React to Solid / v2 migration
+  // Rule 5: forms / validation / zod / valibot / modular-forms / inputs
+  if (/\b(forms?|createform|modular-forms|zod|valibot|form\s+action|(?:form|field|input|schema)\s+validation|validate\s+(?:form|field|input))\b/i.test(text)) {
+    const isRefactor = /\b(refactor|migrate|upgrade|conversion|convert)\b/i.test(text);
+    const isReview = /\b(review|audit|check)\b/i.test(text);
+    const primarySkill = isRefactor ? 'solid-refactor-assistant' : (isReview ? 'solid-reviewer' : 'solid-component-builder');
+
+    return {
+      summary: 'Matched form state, input validation, and submission intent.',
+      primary_skill: primarySkill,
+      secondary_skill: 'solid-forms-validation',
+      confidence: 0.95,
+      rationale: [
+        'User query contains form handling, input validation (Zod/Valibot), or submission signals matching rule 5.',
+        `Routed to ${primarySkill} with solid-forms-validation for reactive form pipeline.`
+      ],
+      validation_commands: [
+        'npm run validate:skills',
+        'node tools/scripts/validate-skills.mjs --skill solid-forms-validation'
+      ],
+      citations: [
+        {
+          doc_id: 'solid-core.concepts.components.event-handlers',
+          claim: 'Solid event handling and validation utilize currentTarget bindings and fine-grained state derivation.'
+        }
+      ]
+    };
+  }
+
+  // Rule 6: a11y / accessibility / ARIA / kobalte / corvu / focus management
+  if (/\b(a11y|accessibility|wai-aria|aria|kobalte|corvu|screen reader|focus trap|focus management|keyboard nav(?:igation)?)\b/i.test(text)) {
+    const isReview = /\b(review|audit|check)\b/i.test(text);
+    const primarySkill = isReview ? 'solid-reviewer' : 'solid-component-builder';
+
+    return {
+      summary: 'Matched accessible UI, headless components, and ARIA semantics intent.',
+      primary_skill: primarySkill,
+      secondary_skill: 'solid-accessibility-a11y',
+      confidence: 0.95,
+      rationale: [
+        'User query contains accessibility, headless UI (Kobalte/Corvu), or ARIA compliance signals matching rule 6.',
+        `Routed to ${primarySkill} with solid-accessibility-a11y for WAI-ARIA and focus management.`
+      ],
+      validation_commands: [
+        'npm run validate:skills',
+        'node tools/scripts/validate-skills.mjs --skill solid-accessibility-a11y'
+      ],
+      citations: [
+        {
+          doc_id: 'solid-core.reference.component-apis.create-unique-id',
+          claim: 'createUniqueId generates isomorphic, hydration-safe unique IDs for accessible ARIA relationships.'
+        }
+      ]
+    };
+  }
+
+  // Rule 7: animation / transition / solid-transition-group / flip
+  if (/\b(animations?|transitions?|solid-transition-group|transitiongroup|flip animation|motionone|enter\/exit)\b/i.test(text)) {
+    return {
+      summary: 'Matched UI animations, enter/exit transitions, and transition-group intent.',
+      primary_skill: 'solid-component-builder',
+      secondary_skill: 'solid-animation-transitions',
+      confidence: 0.95,
+      rationale: [
+        'User query specifies UI animations or enter/exit transition flows matching rule 7.',
+        'Routed to solid-component-builder and solid-animation-transitions.'
+      ],
+      validation_commands: [
+        'npm run validate:skills',
+        'node tools/scripts/validate-skills.mjs --skill solid-animation-transitions'
+      ],
+      citations: [
+        {
+          doc_id: 'solid-core.reference.reactive-utilities.use-transition',
+          claim: 'useTransition enables concurrent, non-blocking UI state transitions in SolidJS.'
+        }
+      ]
+    };
+  }
+
+  // Rule 8: solid-primitives / @solid-primitives / community primitives
+  if (/\b(solid-primitives|@solid-primitives|community primitives?|maketimer|createtimer|createeventlistener|createresizeobserver|createintersectionobserver)\b/i.test(text)) {
+    return {
+      summary: 'Matched official @solid-primitives ecosystem integration intent.',
+      primary_skill: 'solid-component-builder',
+      secondary_skill: 'solid-primitives-ecosystem',
+      confidence: 0.95,
+      rationale: [
+        'User query specifies @solid-primitives ecosystem integration matching rule 8.',
+        'Routed to solid-component-builder and solid-primitives-ecosystem.'
+      ],
+      validation_commands: [
+        'npm run validate:skills',
+        'node tools/scripts/validate-skills.mjs --skill solid-primitives-ecosystem'
+      ],
+      citations: [
+        {
+          doc_id: 'solid-core.reference.lifecycle.on-cleanup',
+          claim: 'Official @solid-primitives integrate directly with fine-grained reactive owners and lifecycle cleanup hooks.'
+        }
+      ]
+    };
+  }
+
+  // Rule 9: refactor / migrate / upgrade / conversion / React to Solid / v2 migration
   if (/\b(refactor|migrate|upgrade|conversion|convert|react to solid|v2 migration|migrate to v2)\b/i.test(text)) {
     return {
       summary: 'Matched code refactoring and architecture migration intent.',
@@ -115,7 +218,7 @@ export function routeSolidIntent(prompt, runtimeHint = '') {
       secondary_skill: 'solid-state-architecture',
       confidence: 0.95,
       rationale: [
-        'User query contains refactoring or migration signals matching rule 5.',
+        'User query contains refactoring or migration signals matching rule 9.',
         'Routed to solid-refactor-assistant for migration orchestration and solid-state-architecture.'
       ],
       validation_commands: [
@@ -131,7 +234,7 @@ export function routeSolidIntent(prompt, runtimeHint = '') {
     };
   }
 
-  // Rule 6: store / context / shared state / provider boundary
+  // Rule 10: store / context / shared state / provider boundary
   if (/\b(createstore|store|context|usecontext|createcontext|shared state|provider)\b/i.test(text)) {
     return {
       summary: 'Matched Solid state architecture and store/context intent.',
@@ -139,7 +242,7 @@ export function routeSolidIntent(prompt, runtimeHint = '') {
       secondary_skill: 'solid-state-architecture',
       confidence: 0.9,
       rationale: [
-        'User query contains store or context signals matching rule 5.',
+        'User query contains store or context signals matching rule 10.',
         'Routed to solid-design-patterns and solid-state-architecture.'
       ],
       validation_commands: [
@@ -155,7 +258,7 @@ export function routeSolidIntent(prompt, runtimeHint = '') {
     };
   }
 
-  // Rule 6: Show / For / Switch / rendering branch / suspense fallback / Index
+  // Rule 11: Show / For / Switch / rendering branch / suspense fallback / Index
   if (/\b(show|for|switch|match|suspense|index component|control flow)\b/i.test(text)) {
     return {
       summary: 'Matched SolidJS control flow and conditional rendering intent.',
@@ -163,7 +266,7 @@ export function routeSolidIntent(prompt, runtimeHint = '') {
       secondary_skill: 'solid-control-flow-rendering',
       confidence: 0.9,
       rationale: [
-        'User query requests control flow or conditional branching matching rule 6.',
+        'User query requests control flow or conditional branching matching rule 11.',
         'Routed to solid-component-builder and solid-control-flow-rendering.'
       ],
       validation_commands: [
@@ -179,55 +282,7 @@ export function routeSolidIntent(prompt, runtimeHint = '') {
     };
   }
 
-  // Rule 7: signal / memo / effect / resource / untrack / batch
-  if (/\b(signal|createsignal|creatememo|createeffect|createresource|untrack|batch|reactivity)\b/i.test(text)) {
-    return {
-      summary: 'Matched core fine-grained reactivity intent.',
-      primary_skill: 'solid-component-builder',
-      secondary_skill: 'solid-reactivity-core-expert',
-      confidence: 0.95,
-      rationale: [
-        'User query specifies core reactivity primitives matching rule 7.',
-        'Routed to solid-component-builder and solid-reactivity-core-expert.'
-      ],
-      validation_commands: [
-        'npm run validate:skills',
-        'node tools/scripts/validate-skills.mjs --skill solid-reactivity-core-expert'
-      ],
-      citations: [
-        {
-          doc_id: 'solid-core.reference.basic-reactivity.create-signal',
-          claim: 'createSignal is the primary fine-grained reactive atom in SolidJS.'
-        }
-      ]
-    };
-  }
-
-  // Rule 8: test / quality gate / checklist / regression
-  if (/\b(test|testing|quality gate|checklist|audit|vitest|jest)\b/i.test(text)) {
-    return {
-      summary: 'Matched testing and quality gate verification intent.',
-      primary_skill: 'solid-reviewer',
-      secondary_skill: 'solid-testing-quality-gates',
-      confidence: 0.9,
-      rationale: [
-        'User query targets quality gates or test suites matching rule 8.',
-        'Routed to solid-reviewer and solid-testing-quality-gates.'
-      ],
-      validation_commands: [
-        'npm run validate:skills',
-        'node tools/scripts/validate-skills.mjs --skill solid-testing-quality-gates'
-      ],
-      citations: [
-        {
-          doc_id: 'solid-core.reference.basic-reactivity.create-signal',
-          claim: 'Fine-grained reactivity requires explicit testing of tracking contexts and cleanup hooks.'
-        }
-      ]
-    };
-  }
-
-  // Rule 9: scaffold / bootstrap / new app / setup
+  // Rule 12: scaffold / bootstrap / new app / setup
   if (/\b(scaffold|bootstrap|new app|init|project setup)\b/i.test(text)) {
     return {
       summary: 'Matched project scaffolding and bootstrap intent.',
@@ -235,7 +290,7 @@ export function routeSolidIntent(prompt, runtimeHint = '') {
       secondary_skill: 'solid-testing-quality-gates',
       confidence: 0.9,
       rationale: [
-        'User query targets initial setup or bootstrapping matching rule 9.',
+        'User query targets initial setup or bootstrapping matching rule 12.',
         'Routed to solid-scaffold-bootstrap.'
       ],
       validation_commands: [
@@ -251,7 +306,55 @@ export function routeSolidIntent(prompt, runtimeHint = '') {
     };
   }
 
-  // Fallback: rule 10
+  // Rule 13: test / quality gate / checklist / regression
+  if (/\b(tests?|testing|quality gates?|checklists?|audit|vitest|jest|regressions?|code review|review this)\b/i.test(text)) {
+    return {
+      summary: 'Matched testing and quality gate verification intent.',
+      primary_skill: 'solid-reviewer',
+      secondary_skill: 'solid-testing-quality-gates',
+      confidence: 0.9,
+      rationale: [
+        'User query targets quality gates or test suites matching rule 13.',
+        'Routed to solid-reviewer and solid-testing-quality-gates.'
+      ],
+      validation_commands: [
+        'npm run validate:skills',
+        'node tools/scripts/validate-skills.mjs --skill solid-testing-quality-gates'
+      ],
+      citations: [
+        {
+          doc_id: 'solid-core.reference.basic-reactivity.create-signal',
+          claim: 'Fine-grained reactivity requires explicit testing of tracking contexts and cleanup hooks.'
+        }
+      ]
+    };
+  }
+
+  // Rule 14: signal / memo / effect / resource / untrack / batch
+  if (/\b(signal|createsignal|creatememo|createeffect|createresource|untrack|batch|reactivity)\b/i.test(text)) {
+    return {
+      summary: 'Matched core fine-grained reactivity intent.',
+      primary_skill: 'solid-component-builder',
+      secondary_skill: 'solid-reactivity-core-expert',
+      confidence: 0.95,
+      rationale: [
+        'User query specifies core reactivity primitives matching rule 14.',
+        'Routed to solid-component-builder and solid-reactivity-core-expert.'
+      ],
+      validation_commands: [
+        'npm run validate:skills',
+        'node tools/scripts/validate-skills.mjs --skill solid-reactivity-core-expert'
+      ],
+      citations: [
+        {
+          doc_id: 'solid-core.reference.basic-reactivity.create-signal',
+          claim: 'createSignal is the primary fine-grained reactive atom in SolidJS.'
+        }
+      ]
+    };
+  }
+
+  // Fallback: rule 15
   return {
     summary: 'Default fallback to component builder and core reactivity expert.',
     primary_skill: 'solid-component-builder',
@@ -259,7 +362,7 @@ export function routeSolidIntent(prompt, runtimeHint = '') {
     confidence: 0.7,
     rationale: [
       'No explicit specialized package signals detected in prompt.',
-      'Applying rule 10 deterministic fallback to solid-component-builder + solid-reactivity-core-expert.'
+      'Applying rule 15 deterministic fallback to solid-component-builder + solid-reactivity-core-expert.'
     ],
     validation_commands: [
       'npm run validate:skills',

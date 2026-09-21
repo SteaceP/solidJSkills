@@ -52,5 +52,29 @@
     "prompt": "Scaffold a new Solid app with baseline testing and CI checks",
     "expected_primary": "solid-scaffold-bootstrap",
     "expected_secondary": "solid-testing-quality-gates"
+  },
+  {
+    "id": "forms-validation",
+    "prompt": "Build a form with reactive inputs and validate with Zod schema in SolidJS",
+    "expected_primary": "solid-component-builder",
+    "expected_secondary": "solid-forms-validation"
+  },
+  {
+    "id": "accessibility-a11y",
+    "prompt": "Implement accessible modal dialog with Kobalte and WAI-ARIA focus management",
+    "expected_primary": "solid-component-builder",
+    "expected_secondary": "solid-accessibility-a11y"
+  },
+  {
+    "id": "animation-transitions",
+    "prompt": "Add enter and exit animations to list reordering with solid-transition-group",
+    "expected_primary": "solid-component-builder",
+    "expected_secondary": "solid-animation-transitions"
+  },
+  {
+    "id": "primitives-ecosystem",
+    "prompt": "Integrate @solid-primitives/storage with reactive localStorage sync and SSR fallback",
+    "expected_primary": "solid-component-builder",
+    "expected_secondary": "solid-primitives-ecosystem"
   }
 ]

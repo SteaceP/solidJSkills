@@ -516,6 +516,54 @@ async function runTests() {
             errors.push(`get_solid_checklist: expected Reactivity Correctness category, got: ${JSON.stringify(getChecklistParsed)}`);
         }
 
+        // 32. Call route_solid_intent for solid-forms-validation
+        const routeFormsId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'route_solid_intent',
+            arguments: { prompt: 'Build a form with reactive inputs and validate with Zod schema in SolidJS' }
+        }, routeFormsId);
+        const routeFormsResp = await waitForResponse(serverProc, routeFormsId);
+        const routeFormsParsed = JSON.parse(routeFormsResp.result?.content?.[0]?.text || '{}');
+        if (routeFormsParsed.primary_skill !== 'solid-component-builder' || routeFormsParsed.secondary_skill !== 'solid-forms-validation') {
+            errors.push(`route_solid_intent (forms): expected solid-component-builder + solid-forms-validation, got: ${JSON.stringify(routeFormsParsed)}`);
+        }
+
+        // 33. Call route_solid_intent for solid-accessibility-a11y
+        const routeA11yId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'route_solid_intent',
+            arguments: { prompt: 'Implement accessible modal dialog with Kobalte and WAI-ARIA focus management' }
+        }, routeA11yId);
+        const routeA11yResp = await waitForResponse(serverProc, routeA11yId);
+        const routeA11yParsed = JSON.parse(routeA11yResp.result?.content?.[0]?.text || '{}');
+        if (routeA11yParsed.primary_skill !== 'solid-component-builder' || routeA11yParsed.secondary_skill !== 'solid-accessibility-a11y') {
+            errors.push(`route_solid_intent (a11y): expected solid-component-builder + solid-accessibility-a11y, got: ${JSON.stringify(routeA11yParsed)}`);
+        }
+
+        // 34. Call route_solid_intent for solid-animation-transitions
+        const routeAnimId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'route_solid_intent',
+            arguments: { prompt: 'Add enter and exit animations to list reordering with solid-transition-group' }
+        }, routeAnimId);
+        const routeAnimResp = await waitForResponse(serverProc, routeAnimId);
+        const routeAnimParsed = JSON.parse(routeAnimResp.result?.content?.[0]?.text || '{}');
+        if (routeAnimParsed.primary_skill !== 'solid-component-builder' || routeAnimParsed.secondary_skill !== 'solid-animation-transitions') {
+            errors.push(`route_solid_intent (animations): expected solid-component-builder + solid-animation-transitions, got: ${JSON.stringify(routeAnimParsed)}`);
+        }
+
+        // 35. Call route_solid_intent for solid-primitives-ecosystem
+        const routePrimId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'route_solid_intent',
+            arguments: { prompt: 'Integrate @solid-primitives/storage with reactive localStorage sync and SSR fallback' }
+        }, routePrimId);
+        const routePrimResp = await waitForResponse(serverProc, routePrimId);
+        const routePrimParsed = JSON.parse(routePrimResp.result?.content?.[0]?.text || '{}');
+        if (routePrimParsed.primary_skill !== 'solid-component-builder' || routePrimParsed.secondary_skill !== 'solid-primitives-ecosystem') {
+            errors.push(`route_solid_intent (primitives): expected solid-component-builder + solid-primitives-ecosystem, got: ${JSON.stringify(routePrimParsed)}`);
+        }
+
     } finally {
         serverProc.kill('SIGTERM');
         await new Promise((r) => setTimeout(r, 200));
@@ -529,7 +577,7 @@ async function runTests() {
         return;
     }
 
-    console.log('MCP integration tests passed (31 checks).');
+    console.log('MCP integration tests passed (35 checks).');
 }
 
 runTests().catch((err) => {
