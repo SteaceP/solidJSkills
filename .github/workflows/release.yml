@@ -38,15 +38,15 @@ jobs:
       - name: Create release archive
         run: |
           ARCHIVE_NAME="${{ steps.meta.outputs.name }}.tar.gz"
-            tar czf "$ARCHIVE_NAME" \
-            --ignore-failed-read \
+          tar czf "$ARCHIVE_NAME" \
+            --exclude="$ARCHIVE_NAME" \
+            --exclude="*.tar.gz" \
             --exclude='.git' \
             --exclude='node_modules' \
             .
-          echo "archive=$ARCHIVE_NAME" >> "$GITHUB_ENV"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: ${{ env.archive }}
+          files: ${{ steps.meta.outputs.name }}.tar.gz
