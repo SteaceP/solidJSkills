@@ -33,6 +33,10 @@ Provide a practical operating system for SolidJS engineering work with strict co
 * `skills/solid-reactivity-core-expert/`
 * `skills/solid-control-flow-rendering/`
 * `skills/solid-state-architecture/`
+* `skills/solid-primitives-ecosystem/`
+* `skills/solid-forms-validation/`
+* `skills/solid-accessibility-a11y/`
+* `skills/solid-animation-transitions/`
 * `skills/solid-router-data-navigation/`
 * `skills/solid-start-server-runtime/`
 * `skills/solid-ssr-hydration-debugger/`
