@@ -4,6 +4,8 @@
     "description": "Root package for SolidJSkills repository tooling",
     "type": "module",
     "scripts": {
+        "test": "npm run validate && npm run smoke && npm --prefix mcp-server test && npm run test:integration",
+        "test:integration": "node tests/integration/mcp-server.test.mjs",
         "validate": "npm run validate:corpus && npm run validate:skills && npm run validate:contracts",
         "validate:corpus": "node tools/scripts/validate-solid-corpus.mjs",
         "validate:skills": "node tools/scripts/validate-skills.mjs",
