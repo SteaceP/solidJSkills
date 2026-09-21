@@ -26,7 +26,7 @@ This extension provides documentation and skill tools for the solidJSkills repos
 ## MCP Resources & Prompts
 
 - **Resources**: `solid://manifest`, `solid://taxonomy`, `solid://skills`, `solid://docs/{docId}`, `solid://skills/{skillName}`.
-- **Prompts**: `review-solid-code`, `audit-reactivity`, `scaffold-component`, `migrate-react-to-solid`.
+- **Prompts**: `review-solid-code`, `audit-reactivity`, `scaffold-component`, `migrate-react-to-solid`, `upgrade-v1-to-v2`, `debug-hydration`.
 
 ## Safety
 

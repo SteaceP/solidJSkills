@@ -18,7 +18,7 @@ When you connect your AI agent to this, it gets:
   - **Zero Version Mixing**: Prohibits mixing v1 and v2 APIs in the same component.
 - **18 Specialized SolidJS Skills**: Contract-enforced workflows covering component creation, React-to-Solid migration, 1.x-to-2.0 upgrades, fine-grained reactivity audits, full-stack SolidStart, accessibility (Kobalte/Corvu), animation, and testing.
 - **11 MCP Tools**: Real-time access to a 233-doc normalized corpus, symbol resolution, intent routing, version detection, static code auditing, and AGENTS.md verification checklists.
-- **4 MCP Prompts**: Pre-engineered prompts for code review, reactivity auditing, component scaffolding, and React-to-Solid conversion.
+- **6 MCP Prompts**: Pre-engineered prompts for code review, reactivity auditing, component scaffolding, React-to-Solid conversion, v1-to-v2 upgrades, and SSR hydration debugging.
 - **Validation Quality Gates**: Deterministic scripts (`npm test`) ensuring all docs, output contracts, and skill references adhere to repository standards.
 
 ---
@@ -76,11 +76,13 @@ The `solidjskills` server exposes 11 tools accessible to any MCP client:
 10. `get_solid_checklist`: Retrieve AGENTS.md verification criteria (`type='review'`) or output schemas (`type='contracts'`).
 11. `detect_solid_version`: Analyze `package.json` and/or code snippets to detect target SolidJS framework version (1.x Production Stable vs 2.0-rc.9), return approved/forbidden primitives, and enforce zero version mixing.
 
-### 4 MCP Prompts
+### 6 MCP Prompts
 - `review-solid-code`: Structured review against AGENTS.md reactivity, version standards, performance, and accessibility checklist.
 - `audit-reactivity`: Pinpointed audit detecting signal leaks, lost reactivity, stale closures, or effect loops.
 - `scaffold-component`: Production-grade TypeScript component scaffolding with proper props proxying and ARIA semantics.
 - `migrate-react-to-solid`: Deterministic mapping from React hooks (`useState`, `useEffect`, `useMemo`, `.map()`) to native SolidJS primitives.
+- `upgrade-v1-to-v2`: Migration assistant upgrading Solid 1.x components to Solid 2.0-rc.9 conventions (<For keyed={false}>, <Loading>/<Errored>, dynamic(), flush()).
+- `debug-hydration`: Systematic root-cause diagnosis and resolution of SSR hydration mismatches and isomorphic state leaks.
 
 ---
 

@@ -172,4 +172,96 @@ Return:
       ]
     })
   );
+
+  // 5. upgrade-v1-to-v2
+  server.prompt(
+    'upgrade-v1-to-v2',
+    'Upgrade a SolidJS 1.x component or application to SolidJS 2.0-rc.9 release candidate conventions',
+    {
+      code: z.string().describe('The SolidJS 1.x code snippet to upgrade')
+    },
+    ({ code }) => ({
+      messages: [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Upgrade the following SolidJS 1.x code to SolidJS 2.0-rc.9 (Release Candidate) standards:
+
+\`\`\`tsx
+${code}
+\`\`\`
+
+Strictly adhere to the following SolidJS 2.0 breaking changes and architectural patterns:
+1. **Control Flow**:
+   - Replace \`<Index each={list()}>{(item, i) => ...}</Index>\` with \`<For each={list()} keyed={false}>{(item, i) => ...}</For>\`.
+   - Keyed lists retain default \`<For each={list()}>{(item, i) => ...}</For>\` or explicit \`<For keyed>\`.
+2. **Async Boundaries**:
+   - Replace \`<Suspense fallback={...}>\` with \`<Loading fallback={...}>\`.
+   - Pair with \`<Errored fallback={(err) => ...}>\` for dedicated async failure boundaries.
+   - Replace \`<SuspenseList revealOrder="..." tail="...">\` with \`<Reveal order="sequential"|"together" collapsed>\`.
+3. **Dynamic Components**:
+   - Replace \`<Dynamic component={Tag} {...props} />\` with functional \`const Element = dynamic(Tag); <Element {...props} />\`.
+4. **Batching & Scheduling**:
+   - Remove manual \`batch(() => { ... })\`; Solid 2.0 microtask batches automatically. Use \`flush()\` only if immediate synchronous read is required.
+5. **Async Reactive Graph**:
+   - Replace \`createResource\` with native async computations: \`const data = createMemo(async () => ...)\` or direct promise reads.
+6. **Mutations**:
+   - Leverage generator \`action(function* () { yield ... })\` or \`createOptimisticStore()\` for state mutations where applicable.
+7. **Zero Version Mixing**:
+   - Do NOT retain any v1-only APIs (\`<Index>\`, \`<Suspense>\`, \`<Dynamic>\`, \`createResource\`).
+
+Provide:
+- Step-by-step Upgrade Summary
+- Complete, refactored SolidJS 2.0-rc.9 TypeScript component`
+          }
+        }
+      ]
+    })
+  );
+
+  // 6. debug-hydration
+  server.prompt(
+    'debug-hydration',
+    'Diagnose and resolve SSR hydration mismatches, marker order shifts, and isomorphic state leaks in SolidJS / SolidStart',
+    {
+      code: z.string().describe('The component or route code encountering hydration errors'),
+      errorMessage: z.string().optional().describe('Optional console error, mismatch diff, or hydration warning')
+    },
+    ({ code, errorMessage }) => ({
+      messages: [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Diagnose and resolve the SSR hydration mismatch in the following SolidJS / SolidStart code:
+
+\`\`\`tsx
+${code}
+\`\`\`
+${errorMessage ? `\n**Reported Error / Symptom**:\n\`\`\`\n${errorMessage}\n\`\`\`\n` : ''}
+Systematically evaluate the following 5 hydration failure causes:
+1. **Client Globals during Initial Execution**:
+   - Check for access to \`window\`, \`document\`, \`localStorage\`, or \`navigator\` in top-level setup.
+   - Solution: Move to \`onMount(() => { ... })\` or guard with \`if (!isServer)\` from \`solid-js/web\`.
+2. **Non-Deterministic Server vs Client Output**:
+   - Check for \`Date.now()\`, \`Math.random()\`, localized timezone strings, or unseeded IDs.
+   - Solution: Use \`createUniqueId()\` for deterministic IDs or defer dynamic values to \`onMount\`.
+3. **Invalid HTML Nesting**:
+   - Check for browser auto-corrections: \`<p>\` containing block elements (\`<div>\`, \`<p>\`), \`<tr>\` directly inside \`<table>\` without \`<tbody>\`, or interactive elements nested inside \`<a>\` / \`<button>\`.
+   - Browser DOM corrections shift comment markers and break fine-grained hydration.
+4. **Unguarded Asynchronous State / Missing Boundaries**:
+   - Check if resources or async memos resolve differently on server without \`<Suspense>\` or \`<Loading>\` boundaries.
+5. **Conditional Branch Divergence**:
+   - Check if server renders one branch and client synchronously renders another before hydration completes.
+
+Provide:
+- Root Cause Analysis
+- Corrected Isomorphic Component Code
+- Hydration Testing & Verification Strategy`
+          }
+        }
+      ]
+    })
+  );
 }
