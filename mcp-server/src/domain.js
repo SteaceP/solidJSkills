@@ -107,7 +107,31 @@ export function routeSolidIntent(prompt, runtimeHint = '') {
     };
   }
 
-  // Rule 5: store / context / shared state / provider boundary
+  // Rule 5: refactor / migrate / upgrade / conversion / React to Solid / v2 migration
+  if (/\b(refactor|migrate|upgrade|conversion|convert|react to solid|v2 migration|migrate to v2)\b/i.test(text)) {
+    return {
+      summary: 'Matched code refactoring and architecture migration intent.',
+      primary_skill: 'solid-refactor-assistant',
+      secondary_skill: 'solid-state-architecture',
+      confidence: 0.95,
+      rationale: [
+        'User query contains refactoring or migration signals matching rule 5.',
+        'Routed to solid-refactor-assistant for migration orchestration and solid-state-architecture.'
+      ],
+      validation_commands: [
+        'npm run validate:skills',
+        'node tools/scripts/validate-skills.mjs --skill solid-refactor-assistant'
+      ],
+      citations: [
+        {
+          doc_id: 'solid-core.concepts.components.basics',
+          claim: 'Refactoring SolidJS code requires preserving fine-grained reactivity and isolating side effects.'
+        }
+      ]
+    };
+  }
+
+  // Rule 6: store / context / shared state / provider boundary
   if (/\b(createstore|store|context|usecontext|createcontext|shared state|provider)\b/i.test(text)) {
     return {
       summary: 'Matched Solid state architecture and store/context intent.',
@@ -337,6 +361,18 @@ export function auditSolidCode(code) {
     }
   }
 
+  // 6. Mixed version APIs: mixing Solid 1.x and 2.0 primitives
+  const hasV1ControlFlow = /<Index\b|<Suspense\b|<Dynamic\b/.test(code);
+  const hasV2ControlFlow = /<Loading\b|<Errored\b|<Reveal\b|<For[^>]+keyed=\{false\}/.test(code);
+  if (hasV1ControlFlow && hasV2ControlFlow) {
+    issues.push({
+      rule: 'no-mixed-version-apis',
+      severity: 'error',
+      message: 'Detected mixing of SolidJS 1.x (<Index>, <Suspense>, <Dynamic>) and SolidJS 2.0-rc (<Loading>, <Errored>, <Reveal>, <For keyed={false}>) in the same code snippet. Framework versions must not be mixed.',
+      recommendation: 'Target either SolidJS 1.x or SolidJS 2.0-rc.9 consistently.'
+    });
+  }
+
   const score = issues.filter((i) => i.severity === 'error').length === 0 ? (issues.length === 0 ? 100 : 85) : Math.max(30, 80 - issues.length * 20);
 
   return {
@@ -362,6 +398,10 @@ export async function getSolidChecklist(repoRoot, type = 'review') {
       type: 'review',
       title: 'SolidJS Review Checklist (AGENTS.md Standard)',
       items: [
+        {
+          category: 'Framework Version Standards',
+          criteria: 'Default target is SolidJS 1.x (Production Stable); apply SolidJS 2.0-rc.9 conventions (<For keyed={false}>, <Loading>/<Errored>, <Reveal>, dynamic(), microtask auto-batching) only when ^2.0.0-rc is declared; strictly prohibit mixing v1 and v2 APIs in the same component.'
+        },
         {
           category: 'Reactivity Correctness',
           criteria: 'Props are NOT destructured; fine-grained primitives used intentionally (createSignal, createMemo, createEffect, untrack, batch).'

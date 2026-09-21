@@ -95,3 +95,43 @@ import { dynamic } from "solid-js/web";
 const Tag = dynamic(() => props.tag);
 <Tag class="heading">{props.children}</Tag>
 ```
+
+### 2.4 Replace `<SuspenseList>` with `<Reveal>`
+```tsx
+// Solid 1.x:
+<SuspenseList revealOrder="forwards" tail="collapsed">
+  <Suspense fallback={<p>Loading A...</p>}><CompA /></Suspense>
+  <Suspense fallback={<p>Loading B...</p>}><CompB /></Suspense>
+</SuspenseList>
+
+// Solid 2.0-rc.9:
+<Reveal order="sequential" collapsed>
+  <Loading fallback={<p>Loading A...</p>}><CompA /></Loading>
+  <Loading fallback={<p>Loading B...</p>}><CompB /></Loading>
+</Reveal>
+```
+
+### 2.5 Microtask Auto-Batching and `flush()`
+In Solid 2.0-rc.9, `batch()` is removed. All updates are auto-batched on the microtask.
+If you need to read synchronously (e.g. before measuring DOM), use `flush()`:
+```tsx
+// Solid 1.x:
+batch(() => { setA(1); setB(2); });
+
+// Solid 2.0-rc.9:
+setA(1); setB(2); // auto-batched
+flush(); // only if synchronous DOM read is needed
+```
+
+### 2.6 Modern Mutations with `action()` and `createOptimisticStore()`
+```tsx
+import { action, createOptimisticStore, refresh } from "solid-js";
+
+const [items, setItems] = createOptimisticStore(() => api.fetchItems());
+
+const addItem = action(function* (newItem) {
+  setItems((prev) => [...prev, newItem]); // Instant optimistic update
+  yield api.saveItem(newItem);            // Pause during network roundtrip
+  refresh(items);                         // Authoritative revalidation
+});
+```

@@ -1,8 +1,9 @@
-# Gemini MCP Extension Blueprint (v2)
+# Gemini MCP Extension Blueprint (Phase 2 Platform)
 
 ## 1. Purpose
 
 Route and enforce SolidJS engineering work with deterministic, citation-backed skill contracts.
+Enforce SolidJS 1.x (Production Stable) conventions by default, with isolated SolidJS 2.0-rc.9 (Release Candidate) support when `"solid-js": "^2.0.0-rc"` is specified.
 
 ## 2. Routing Model
 

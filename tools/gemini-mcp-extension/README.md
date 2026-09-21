@@ -1,12 +1,12 @@
 # Gemini MCP Extension (SolidJS Alignment)
 
-This directory defines the SolidJS v2 routing and quality contract for Gemini MCP integration.
+This directory defines the Phase 2 (Extension Platform) routing and quality contract for Gemini MCP integration.
 
 ## Goals
 
-- Route requests through `solid-intent-router`.
-- Select one macro skill plus one domain subskill deterministically.
-- Enforce citation-backed outputs using normalized corpus `doc_id` references.
+- Route requests through `solid-intent-router` with deterministic macro/subskill precedence.
+- Target SolidJS 1.x (Production Stable) by default; support SolidJS 2.0-rc.9 (Release Candidate) when specified.
+- Enforce citation-backed outputs using normalized corpus `doc_id` references (`solid-core`, `solid-router`, `solid-start`, `solid-meta`, `solid-v2`).
 
 ## Contents
 

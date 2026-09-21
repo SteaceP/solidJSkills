@@ -22,6 +22,13 @@ cd my-start-app
 npm install
 ```
 
+### 1.3 Targeting SolidJS 2.0-rc.9 (Release Candidate)
+```bash
+# Upgrade solid-js to the 2.0 Release Candidate
+npm install solid-js@^2.0.0-rc.9
+```
+When targeting 2.0-rc, full-stack start mode is provided directly via `@solidjs/vite-plugin` (`solid({ start: true })`) rather than standalone `@solidjs/start`.
+
 ---
 
 ## 2. TypeScript Configuration (`tsconfig.json`)

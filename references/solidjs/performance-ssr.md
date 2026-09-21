@@ -1,10 +1,20 @@
 # Performance and SSR/Hydration
 
+> [!NOTE]
+> **Version Scope**: This reference documents **SolidJS 1.x (Production Stable)** performance and SSR patterns (`batch`, `<Index>`, `<Suspense>`).
+> In **SolidJS 2.0-rc.9 (Release Candidate)**:
+> - Auto-batching on microtasks replaces manual `batch()` calls.
+> - `<For keyed={false}>` replaces `<Index>`.
+> - `<Loading>` and `<Errored>` replace `<Suspense>`.
+> - `<Reveal>` coordinates loading boundaries instead of `<SuspenseList>`.
+> - SSR is powered by standard Vite plugin start mode.
+> See [`guides/solidjs-v2-rc-guide.md`](../../guides/solidjs-v2-rc-guide.md).
+
 ## Performance checklist
 
 - [ ] No `createEffect` used where `createMemo` suffices.
-- [ ] `batch` wraps multi-signal updates to prevent intermediate renders.
-- [ ] `<For>` used for keyed object lists; `<Index>` for primitive lists.
+- [ ] Multi-signal updates batched (`batch` in 1.x; automatic on microtasks in 2.0).
+- [ ] `<For>` used for keyed object lists; `<Index>` (1.x) or `<For keyed={false}>` (2.0) for primitive lists.
 - [ ] `lazy()` applied at route/feature boundaries for code splitting.
 - [ ] Large lists use virtual scrolling or pagination, not unbounded `<For>`.
 - [ ] `untrack` used where reads are intentionally non-reactive.

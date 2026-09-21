@@ -25,21 +25,27 @@ ${code}
 
 Conduct your review using the following strict checklist:
 
-1. **Reactivity Preservation**:
+1. **Framework Version Standards**:
+   - Default target is **SolidJS 1.x (Production Stable)** unless Solid 2.0-rc is explicitly specified.
+   - Enforce 1.x conventions (\`createSignal\` accessor calls \`count()\`, \`<Index>\` for primitive lists, \`<Suspense fallback={...}>\`, \`createResource\`).
+   - If SolidJS 2.0-rc is targeted: enforce 2.0 conventions (first-class async graph, \`<For keyed={false}>\`, \`<Loading>\`/\`<Errored>\`, \`dynamic()\`).
+   - Strictly prohibit mixing v1 and v2 APIs in the same component.
+
+2. **Reactivity Preservation**:
    - Verify that props are NOT destructured (e.g. \`const { x } = props\` loses reactivity; use \`props.x\` or \`splitProps\`).
    - Ensure signals are read inside reactive tracking scopes (JSX bindings, effects, memos), not during component setup outside a tracking context.
    - Verify that fine-grained primitives (\`createSignal\`, \`createMemo\`, \`createEffect\`, \`createResource\`) are used intentionally.
 
-2. **Computation & Performance**:
+3. **Computation & Performance**:
    - Ensure derived values use \`createMemo\` rather than an effect writing to a secondary signal.
    - Verify \`batch\` is suggested if multiple related signals are written in event handlers.
    - Check if \`untrack\` is required to prevent unintended reactive subscriptions.
 
-3. **Control Flow Primitives**:
+4. **Control Flow Primitives**:
    - Verify that Solid control flow elements (\`<Show>\`, \`<For>\`, \`<Index>\`, \`<Switch>\`, \`<Match>\`) are used instead of JavaScript ternaries or array \`.map()\` in JSX.
    - Ensure keying / reconciliation choice (\`<For>\` vs \`<Index>\`) matches whether list items change by identity or by index.
 
-4. **Async & SSR / Hydration**:
+5. **Async & SSR / Hydration**:
    - Check if resources handle loading and error states explicitly (\`<Suspense>\`, \`<ErrorBoundary>\`).
    - Verify no direct browser APIs (\`window\`, \`document\`, \`localStorage\`) are accessed during initial module or component setup without an \`isServer\` guard or inside \`onMount\`.
 
@@ -113,6 +119,7 @@ ${description}
 
 ${props ? `**Props Specification**:\n${props}\n` : ''}
 **Standards to enforce**:
+- Target SolidJS 1.x (Production Stable) by default; if SolidJS 2.0-rc is requested, use 2.0 conventions (<For keyed={false}>, <Loading>/<Errored>, dynamic()).
 - Written in TypeScript (\`.tsx\`).
 - Explicit props interface exported.
 - Use \`splitProps\` or \`mergeProps\` if defaults or rest props are needed; NEVER destructure props directly.
@@ -144,6 +151,8 @@ ${props ? `**Props Specification**:\n${props}\n` : ''}
 \`\`\`tsx
 ${reactCode}
 \`\`\`
+
+**Target Version**: Default to **SolidJS 1.x (Production Stable)**. (Note: In SolidJS 2.0-rc.9, <Index> is replaced by <For keyed={false}> and <Suspense> is replaced by <Loading> and <Errored>).
 
 Follow these exact migration mappings:
 1. \`useState(initial)\` &rarr; \`createSignal(initial)\` (remember to invoke \`signal()\` when reading in Solid!).

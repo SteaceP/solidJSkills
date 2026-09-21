@@ -1,4 +1,4 @@
-# Gemini MCP Skill Routing Map (SolidJS v2)
+# Gemini MCP Skill Routing Map (Phase 2 Platform)
 
 ## Deterministic precedence
 
@@ -8,12 +8,13 @@ Apply rules in this order. First match wins.
 2. `solid-start`/server/use server/middleware/request event/session/auth -> `solid-refactor-assistant` + `solid-start-server-runtime`
 3. `hydration`/SSR mismatch/isServer/no hydration/renderToString -> `solid-reviewer` + `solid-ssr-hydration-debugger`
 4. `router`/route/navigation/params/search/query/action/revalidate -> `solid-component-builder` + `solid-router-data-navigation`
-5. `store`/context/shared state/provider boundary -> `solid-design-patterns` + `solid-state-architecture`
-6. `Show`/`For`/`Switch`/rendering branch/suspense fallback -> `solid-component-builder` + `solid-control-flow-rendering`
-7. `signal`/memo/effect/resource/untrack/batch -> `solid-component-builder` + `solid-reactivity-core-expert`
-8. `test`/quality gate/checklist/regression -> `solid-reviewer` + `solid-testing-quality-gates`
-9. `scaffold`/bootstrap/new app/setup -> `solid-scaffold-bootstrap` + `solid-testing-quality-gates`
-10. fallback -> `solid-component-builder` + `solid-reactivity-core-expert`
+5. `refactor`/migrate/upgrade/convert/v2 migration -> `solid-refactor-assistant` + `solid-state-architecture`
+6. `store`/context/shared state/provider boundary -> `solid-design-patterns` + `solid-state-architecture`
+7. `Show`/`For`/`Switch`/rendering branch/suspense fallback -> `solid-component-builder` + `solid-control-flow-rendering`
+8. `signal`/memo/effect/resource/untrack/batch -> `solid-component-builder` + `solid-reactivity-core-expert`
+9. `test`/quality gate/checklist/regression -> `solid-reviewer` + `solid-testing-quality-gates`
+10. `scaffold`/bootstrap/new app/setup -> `solid-scaffold-bootstrap` + `solid-testing-quality-gates`
+11. fallback -> `solid-component-builder` + `solid-reactivity-core-expert`
 
 ## Intent map
 

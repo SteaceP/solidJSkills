@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-21T19:15:09.178Z",
+  "generated_at": "2026-09-21T19:29:39.394Z",
   "package_topic_docs": {
     "solid-core": {
       "advanced-concepts": [
@@ -315,7 +315,14 @@
       ],
       "reference/components": [
         "solid-v2.reference.components.for",
-        "solid-v2.reference.components.loading-errored"
+        "solid-v2.reference.components.loading-errored",
+        "solid-v2.reference.components.reveal"
+      ],
+      "reference/mutations": [
+        "solid-v2.reference.mutations.action-and-optimistic"
+      ],
+      "reference/reactive-utilities": [
+        "solid-v2.reference.reactive-utilities.flush"
       ],
       "reference/rendering": [
         "solid-v2.reference.rendering.dynamic"
@@ -1322,7 +1329,8 @@
       "solid-router.solid-router.reference.data-apis.use-action",
       "solid-router.solid-router.reference.data-apis.use-submission",
       "solid-start.solid-start.advanced.return-responses",
-      "solid-start.solid-start.guides.data-mutation"
+      "solid-start.solid-start.guides.data-mutation",
+      "solid-v2.reference.mutations.action-and-optimistic"
     ],
     "actions": [
       "solid-router.solid-router.concepts.actions"
@@ -1495,7 +1503,9 @@
       "solid-router.solid-router.reference.components.hash-router",
       "solid-router.solid-router.reference.preload-functions.preload",
       "solid-router.solid-router.reference.response-helpers.json",
-      "solid-start.solid-start.migrating-from-v1"
+      "solid-start.solid-start.migrating-from-v1",
+      "solid-v2.migration-guide",
+      "solid-v2.reference.components.reveal"
     ],
     "memory-router": [
       "solid-router.solid-router.reference.components.memory-router"
@@ -1996,6 +2006,21 @@
     ],
     "loadingErrored": [
       "solid-v2.reference.components.loading-errored"
+    ],
+    "reveal": [
+      "solid-v2.reference.components.reveal"
+    ],
+    "action-and-optimistic": [
+      "solid-v2.reference.mutations.action-and-optimistic"
+    ],
+    "actionAndOptimistic": [
+      "solid-v2.reference.mutations.action-and-optimistic"
+    ],
+    "createOptimisticStore": [
+      "solid-v2.reference.mutations.action-and-optimistic"
+    ],
+    "flush": [
+      "solid-v2.reference.reactive-utilities.flush"
     ]
   }
 }

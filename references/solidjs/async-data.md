@@ -1,5 +1,9 @@
 # SolidJS Async and Data Loading
 
+> [!NOTE]
+> **Version Scope**: This reference documents **SolidJS 1.x (Production Stable)** asynchronous primitives (`createResource`, `<Suspense>`).
+> For **SolidJS 2.0-rc.9 (Release Candidate)** native async graph reactivity ("Fetch High, Block Low", `NotReadyError`, `<Loading>`, `<Errored>`), consult [`guides/solidjs-v2-rc-guide.md`](../../guides/solidjs-v2-rc-guide.md) and corpus doc `solid-v2.concepts.async-reactivity`.
+
 ## Core primitives
 
 | Primitive | Signature | Purpose |

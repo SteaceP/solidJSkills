@@ -26,11 +26,14 @@ SolidJS 2.0 is a fundamental modernization of the framework focused on:
 | :--- | :--- | :--- |
 | **Async Data Fetching** | `createResource(source, fetcher)` + `<Suspense fallback={...}>` | Direct async reading in graph: `const data = async () => ...` or native promises in computations |
 | **Async Boundaries** | `<Suspense fallback={<Spinner />}>` with `<ErrorBoundary fallback={...}>` | Redesigned boundaries: `<Loading fallback={<Spinner />}>` and `<Errored fallback={...}>` |
+| **Boundary Coordination** | `<SuspenseList revealOrder="..." tail="...">` | `<Reveal order="sequential"\|"together"\|"natural" collapsed>` (`<SuspenseList>` removed) |
 | **Keyed Lists** | `<For each={list()}>{(item, index) => ...}</For>` (item is value, index is signal) | `<For each={list()} keyed>{(item, index) => ...}</For>` (default is keyed) |
 | **Non-Keyed (Index) Lists** | `<Index each={list()}>{(item, index) => ...}</Index>` (item is signal, index is value) | `<For each={list()} keyed={false}>{(item, index) => ...}</For>` (`<Index>` removed) |
+| **Batching & Scheduling** | Explicit `batch(() => { ... })` required to avoid intermediate renders | Automatic microtask batching by default; synchronous draining via `flush()` (`batch()` removed) |
 | **Dynamic Components** | `<Dynamic component={Tag} {...props} />` | `const Element = dynamic(Tag); <Element {...props} />` (`<Dynamic>` deprecated) |
-| **Effects** | `createEffect`, `createRenderEffect`, `createComputed` | Phased effect execution: explicit separation of render-phase, post-commit, and DOM effects |
-| **Mutations** | Manual signals, `@solidjs/router` `action` / `createAction` | Core `action()` primitive with built-in status and `createOptimisticStore()` |
+| **Effects** | `createEffect`, `createRenderEffect`, `createComputed` | Phased effect execution: explicit separation into compute (tracking) and apply (side-effect) phases |
+| **Mutations** | Manual signals, `@solidjs/router` `action` / `createAction` | Generator-based `action(function* () { yield ... })`, `createOptimisticStore()`, and `refresh()` |
+| **Web Package** | Re-exported from core or `solid-js/web` | `@solidjs/web` is an explicit, separate package from `solid-js` |
 | **Compiler** | Babel-based JSX transform (`babel-preset-solid`) | Oxc / Rust-based high-performance compiler |
 | **Meta-framework** | Standalone `@solidjs/start` package via Vinxi | Core Vite plugin "start mode" (`@solidjs/vite-plugin`) |
 
@@ -128,6 +131,41 @@ function Heading(props) {
 
 ---
 
+### 3.4 Coordinated Boundaries: `<Reveal>`
+
+In Solid 1.x, `<SuspenseList>` was used to coordinate `<Suspense>` boundaries.
+In Solid 2.0-rc, `<Reveal>` coordinates `<Loading>` boundaries:
+
+```tsx
+import { Reveal, Loading } from "solid-js";
+
+<Reveal order="sequential" collapsed>
+  <Loading fallback={<p>Loading section 1...</p>}>
+    <SectionOne />
+  </Loading>
+  <Loading fallback={<p>Loading section 2...</p>}>
+    <SectionTwo />
+  </Loading>
+</Reveal>
+```
+
+---
+
+### 3.5 Microtask Auto-Batching and `flush()`
+
+In Solid 1.x, multiple signal writes outside event handlers required `batch(() => { ... })` to prevent intermediate renders.
+In Solid 2.0-rc, writes are automatically queued on a microtask. If you need to force pending writes to apply synchronously (e.g. before measuring DOM dimensions), use `flush()`:
+
+```tsx
+import { createSignal, flush } from "solid-js";
+
+const [count, setCount] = createSignal(0);
+setCount(1);
+flush(); // Forces queued microtask updates to commit synchronously
+```
+
+---
+
 ## 4. Migration Checklist: Upgrading from 1.x to 2.0-rc.9
 
 When tasked with upgrading a 1.x application to 2.0-rc.9:
@@ -141,11 +179,16 @@ When tasked with upgrading a 1.x application to 2.0-rc.9:
 3. **Update `<Suspense>` to `<Loading>` / `<Errored>`**:
    - Convert legacy `<Suspense fallback={...}>` to `<Loading fallback={...}>`.
    - Wrap in `<Errored fallback={...}>` to replace legacy error boundaries.
-4. **Replace `<Dynamic>`**:
+4. **Update `<SuspenseList>` to `<Reveal>`**:
+   - Replace `<SuspenseList>` with `<Reveal order="sequential"|"together">`.
+5. **Replace `<Dynamic>`**:
    - Replace `<Dynamic component={...} />` with `dynamic()`.
-5. **Modernize Async Resources**:
-   - Review `createResource` call sites; evaluate converting to native async functions where appropriate.
-6. **SolidStart / Vite Configuration**:
+6. **Remove `batch()` & Adopt `flush()`**:
+   - Remove explicit `batch()` wrappers since updates auto-batch across microtasks.
+   - Use `flush()` only where synchronous layout measurement is required.
+7. **Modernize Async Resources & Mutations**:
+   - Review `createResource` call sites; evaluate converting to native async functions or `action(function* () { yield ... })` + `createOptimisticStore()`.
+8. **SolidStart / Vite Configuration**:
    - If using SolidStart, review the migration from Vinxi-based `@solidjs/start` to the unified start mode in the Vite plugin.
 
 ---

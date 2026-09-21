@@ -14,12 +14,28 @@
 - [ ] `<For>` for keyed objects, `<Index>` for primitive arrays.
 - [ ] All `fallback` props provided on conditional/list components.
 
+## Version-Specific Invariants
+
+### SolidJS 1.x (Production Stable - Default)
+- [ ] Primitive arrays use `<Index>`; object arrays use `<For>`.
+- [ ] Async fetching uses `createResource` wrapped in `<Suspense fallback={...}>`.
+- [ ] Multiple signal writes grouped in `batch(() => { ... })` where needed.
+- [ ] Polymorphic components rendered with `<Dynamic component={...} />`.
+- [ ] Multi-boundary coordination uses `<SuspenseList>`.
+
+### SolidJS 2.0-rc.9 (Release Candidate)
+- [ ] Non-keyed lists use `<For keyed={false}>` (`<Index>` is removed).
+- [ ] Async derivations use native async graph (`createMemo(async () => ...)`); `createResource` is not used.
+- [ ] Async boundaries use `<Loading fallback={...}>` and `<Errored fallback={...}>` (`<Suspense>` is removed).
+- [ ] Polymorphic elements use `dynamic()` function (`<Dynamic>` is deprecated).
+- [ ] Multi-boundary coordination uses `<Reveal order="sequential"|"together">` (`<SuspenseList>` is removed).
+- [ ] Microtask auto-batching used; no `batch()` calls; `flush()` used only if synchronous reading is needed.
+- [ ] Strictly verify that v1 and v2 APIs are NOT mixed in the same component.
+
 ## Async and data
 
-- [ ] Every `createResource` wrapped in `<Suspense>` with a fallback.
-- [ ] Error boundaries placed around async regions.
-- [ ] All four states handled: loading, success, empty, error.
-- [ ] `mutate`/`refetch` used correctly for optimistic updates.
+- [ ] Async regions handle all four states: loading, success, empty, error.
+- [ ] Optimistic updates use `mutate`/`refetch` (1.x) or `action()` / `createOptimisticStore()` (2.0).
 
 ## Component design
 

@@ -17,29 +17,36 @@ validation_commands:
 
 ## Trigger
 
-Use when deciding between SolidJS 1.x control flow primitives: `<Show>`, `<For>`, `<Index>`, `<Switch>/<Match>`, `<Portal>`, `<Dynamic>`, and `<Suspense>`.
+Use when deciding between SolidJS control flow primitives (defaulting to **SolidJS 1.x**: `<Show>`, `<For>`, `<Index>`, `<Switch>/<Match>`, `<Portal>`, `<Dynamic>`, `<Suspense>`, `<SuspenseList>`; or **SolidJS 2.0-rc.9**: `<For keyed={false}>`, `dynamic()`, `<Loading>`, `<Errored>`, `<Reveal>`).
 
 ## Required Inputs
 
+- Framework version target (SolidJS 1.x stable default, or 2.0-rc.9 when `"solid-js": "^2.0.0-rc"` is specified).
 - Branching conditions and list data structure (objects vs primitives).
 - Reordering and mutation characteristics.
 - Empty states, loading boundaries, and accessibility fallback expectations.
 
 ## Workflow
 
-1. Map collection rendering by item type:
-   - Use `<For>` for object arrays with unique IDs/identities (`(item, index) => ...`, where item is raw object, index is a signal).
-   - Use `<Index>` for primitive arrays (`(item, index) => ...`, where item is a signal, index is raw number).
+1. Map collection rendering by item type and framework version:
+   - **SolidJS 1.x**: Use `<For>` for object arrays with unique IDs; use `<Index>` for primitive arrays.
+   - **SolidJS 2.0-rc.9**: Use `<For each={...}>` (keyed by default); use `<For each={...} keyed={false}>` for non-keyed or primitive arrays (`<Index>` is removed).
 2. Replace JSX ternary conditions:
    - Use `<Show when={...} fallback={...}>` for binary conditionals.
    - Use `<Switch>` and `<Match>` for multi-case logic instead of nested ternaries.
-3. Wrap asynchronous resource rendering in `<Suspense fallback={<Spinner />}>`.
-4. Teleport overlays, dropdowns, and dialogs with `<Portal>` to ensure correct DOM stacking context.
+3. Manage async boundaries:
+   - **SolidJS 1.x**: Wrap asynchronous resource rendering in `<Suspense fallback={<Spinner />}>`; coordinate with `<SuspenseList>`.
+   - **SolidJS 2.0-rc.9**: Wrap in `<Loading fallback={<Spinner />}>` and `<Errored fallback={...}>`; coordinate reveals with `<Reveal order="sequential"|"together">`.
+4. Dynamic components:
+   - **SolidJS 1.x**: `<Dynamic component={...} />`.
+   - **SolidJS 2.0-rc.9**: `dynamic(...)` factory function.
+5. Teleport overlays, dropdowns, and dialogs with `<Portal>` to ensure correct DOM stacking context.
 
 ## Failure Modes
 
 - Nested ternaries used in JSX: reject as anti-pattern; enforce `<Switch>` / `<Match>`.
-- Using `<Index>` for objects with persistent IDs or `<For>` for volatile primitive arrays without rationale.
+- Using `<Index>` in a Solid 2.0-rc codebase or `<For keyed={false}>` in Solid 1.x: fail with clear migration guidance.
+- Mixing v1 and v2 control flow primitives in the same component.
 - Async boundaries without explicit fallback UI.
 
 ## Output Contract

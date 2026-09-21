@@ -11,7 +11,7 @@ A specialized Model Context Protocol (MCP) server providing AI coding agents wit
 ## Features
 
 - **Blazing Fast In-Memory Cache**: Manifest and repository documents are cached in memory with sub-millisecond query latency and automatic file-change invalidation.
-- **Full-Text & Snippet Search**: Search through 222+ normalized SolidJS document bodies, titles, symbols, and tags with contextual snippet extraction.
+- **Full-Text & Snippet Search**: Search through 230 normalized SolidJS document bodies, titles, symbols, and tags with contextual snippet extraction.
 - **Section Extraction & Line Slicing**: Slices specific markdown headings or paginates lines to minimize context window consumption.
 - **Fuzzy 404 Suggestions**: When a document or path is missing, returns helpful "Did you mean..." suggestions to prevent LLM recovery loops.
 - **SolidJS Domain Intelligence**:
@@ -31,7 +31,7 @@ A specialized Model Context Protocol (MCP) server providing AI coding agents wit
 | `list_docs` | _none_ | Lists all repository documents across allowed roots (`skills/`, `guides/`, `references/`, `docs/`, `solidJSdocs/`). |
 | `read_doc` | `path` (string, required)<br>`section` (string, optional)<br>`max_lines` (int, optional)<br>`offset` (int, optional) | Reads a document by repository path, corpus path, or `doc_id`. Supports extracting specific heading sections and line pagination. |
 | `search_docs` | `query` (string, required) | Fast search across repository paths and manifest metadata with full-text fallback. Supports camelCase, kebab-case, and multi-word queries. |
-| `list_corpus_docs` | `package` (string, optional)<br>`topic` (string, optional)<br>`limit` (int, default 100) | Lists normalized SolidJS corpus documents with stable metadata (`doc_id`, `package`, `topic`, `source_path`, `canonical_url`). |
+| `list_corpus_docs` | `package` (string, optional: `solid-core`, `solid-router`, `solid-start`, `solid-meta`, `solid-v2`)<br>`topic` (string, optional)<br>`limit` (int, default 100) | Lists normalized SolidJS corpus documents with stable metadata (`doc_id`, `package`, `topic`, `source_path`, `canonical_url`). |
 | `read_corpus_doc` | `doc_id` (string, required)<br>`source` (`'normalized'` \| `'raw'`)<br>`section` (string, optional)<br>`max_lines` (int, optional)<br>`offset` (int, optional) | Reads a normalized SolidJS document by `doc_id`, returning manifest metadata and markdown body. Supports section extraction and pagination. |
 | `search_corpus` | `query` (string, required)<br>`package` (string, optional)<br>`topic` (string, optional)<br>`full_text` (bool, default false)<br>`limit` (int, default 20) | Ranked search across corpus metadata and document bodies with matching snippet excerpts. |
 | `resolve_solid_api` | `symbol` (string, required)<br>`limit` (int, default 10) | Direct API symbol lookup across manifest entries (e.g. `createSignal`, `useNavigate`, `Show`, `onMount`). |
@@ -53,7 +53,7 @@ Clients (Claude Desktop, Antigravity IDE, Cursor, Windsurf) can attach these res
 ### Static Resources
 
 - **`solid://manifest`**: Full catalog of all normalized SolidJS documents with metadata counts.
-- **`solid://taxonomy`**: Package and topic taxonomy hierarchy (`solid-core`, `solid-router`, `solid-start`, `solid-meta`).
+- **`solid://taxonomy`**: Package and topic taxonomy hierarchy (`solid-core`, `solid-router`, `solid-start`, `solid-meta`, `solid-v2`).
 - **`solid://skills`**: Index of all available agent skills in the repository with descriptions and file paths.
 
 ### Resource Templates

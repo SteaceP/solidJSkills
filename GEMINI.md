@@ -2,6 +2,12 @@
 
 This extension provides documentation and skill tools for the solidJSkills repository.
 
+## Framework Version Standards
+
+- **Default Target (Production Stable)**: Target **SolidJS 1.x** (`<Index>`, `createResource`, `<Suspense>`, `<Dynamic>`, accessor `count()`, tuple setters).
+- **Release Candidate (2.0-rc.9)**: When `package.json` specifies `"solid-js": "^2.0.0-rc"` or 2.0 is requested, apply 2.0 conventions (first-class async graph, `<For keyed={false}>`, `<Loading>`/`<Errored>`, `dynamic()`).
+- **Never Mix Versions**: Prohibit mixing v1 and v2 APIs in the same component.
+
 ## Tool usage
 
 - **Intent & Skill Routing**: Use `route_solid_intent` with the user prompt to identify the primary skill and secondary subskill.

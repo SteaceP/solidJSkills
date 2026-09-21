@@ -87,7 +87,74 @@ import { dynamic } from "solid-js";
 ```
 ---
 
-## 5. Full-Stack Start Mode Migration
+## 5. Reveal Coordination: `<SuspenseList>` to `<Reveal>`
+
+The experimental `<SuspenseList>` component is replaced by `<Reveal>` to coordinate multiple `<Loading>` boundaries.
+
+### Before (Solid 1.x)
+```tsx
+import { SuspenseList, Suspense } from "solid-js";
+
+<SuspenseList revealOrder="forwards" tail="collapsed">
+  <Suspense fallback={<p>Loading A...</p>}><ItemA /></Suspense>
+  <Suspense fallback={<p>Loading B...</p>}><ItemB /></Suspense>
+</SuspenseList>
+```
+### After (Solid 2.0)
+```tsx
+import { Reveal, Loading } from "solid-js";
+
+<Reveal order="sequential" collapsed>
+  <Loading fallback={<p>Loading A...</p>}><ItemA /></Loading>
+  <Loading fallback={<p>Loading B...</p>}><ItemB /></Loading>
+</Reveal>
+```
+---
+
+## 6. Batching & Scheduling: `batch()` to Microtask Auto-Batching and `flush()`
+
+Solid 2.0 automatically batches all reactive updates on a microtask. The `batch()` function is removed. If you require immediate synchronous reads, use `flush()`.
+
+### Before (Solid 1.x)
+```tsx
+import { batch } from "solid-js";
+
+batch(() => {
+  setFirstName("John");
+  setLastName("Doe");
+});
+```
+### After (Solid 2.0)
+```tsx
+import { flush } from "solid-js";
+
+// Updates are auto-batched across microtasks:
+setFirstName("John");
+setLastName("Doe");
+
+// Only if immediate synchronous flush is required (e.g. before measuring DOM):
+flush();
+```
+---
+
+## 7. Mutations & Optimistic State: `action()` and `createOptimisticStore()`
+
+In Solid 1.x, mutations required manual signal management or router actions. Solid 2.0 provides generator-based actions with automatic optimistic rollbacks.
+
+```tsx
+import { action, createOptimisticStore, refresh } from "solid-js";
+
+const [items, setItems] = createOptimisticStore(() => api.fetchItems());
+
+const addItem = action(function* (newItem) {
+  setItems((prev) => [...prev, newItem]); // 1. Instant optimistic update
+  yield api.saveItem(newItem);            // 2. Pause while network request runs
+  refresh(items);                         // 3. Revalidate from server
+});
+```
+---
+
+## 8. Full-Stack Start Mode Migration
 
 If you are using `@solidjs/start` 1.0 (with Vinxi and `app.config.ts`), migrate your configuration to standard Vite Start Mode:
 
@@ -112,10 +179,13 @@ export default defineConfig({
 ```
 ---
 
-## 6. Migration Verification Checklist
+## 9. Migration Verification Checklist
 
 - [ ] Replaced all `<Index>` usages with `<For keyed={false}>`.
 - [ ] Replaced `<Dynamic>` elements with `dynamic()` function calls.
 - [ ] Replaced `createResource` and `<Suspense>` with native async memos and `<Loading>`/`<Errored>`.
+- [ ] Replaced `<SuspenseList>` with `<Reveal order="sequential"|"together">`.
+- [ ] Removed explicit `batch()` calls; inserted `flush()` only where synchronous reads are strictly necessary.
+- [ ] Converted asynchronous mutations to `action(function* () { yield ... })` and `createOptimisticStore()`.
 - [ ] Validated tests with Vitest and updated test assertions for async reactivity.
 - [ ] Verified that SSR builds run without hydration errors using Vite start mode.

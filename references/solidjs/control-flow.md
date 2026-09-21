@@ -1,5 +1,14 @@
 # SolidJS Control Flow
 
+> [!NOTE]
+> **Version Scope**: This reference documents **SolidJS 1.x (Production Stable)** control flow primitives (`<Index>`, `<Dynamic>`).
+> In **SolidJS 2.0-rc.9 (Release Candidate)**:
+> - `<Index>` is removed &rarr; use `<For keyed={false}>`.
+> - `<Dynamic>` JSX component is replaced &rarr; use functional `dynamic()`.
+> - `<Suspense>` is decomposed &rarr; use `<Loading>` and `<Errored>`.
+> - `<SuspenseList>` is replaced &rarr; use `<Reveal order="sequential"|"together">`.
+> See [`guides/solidjs-v2-rc-guide.md`](../../guides/solidjs-v2-rc-guide.md) and corpus doc `solid-v2.concepts.control-flow`.
+
 ## Primitive decision table
 
 | Primitive | Use when | Key behavior |

@@ -27,7 +27,12 @@ In Solid 1.x, asynchronous operations required specialized wrappers like `create
 ### 3. Integrated Start Mode
 SolidStart is no longer a standalone meta-framework CLI (`@solidjs/start`). Instead, full-stack SSR and server function support are delivered directly via a standard Vite plugin (`start mode`), providing a simpler, standard configuration workflow.
 
-### 4. Performance Internals & rc.9 Refinements
+### 4. Deterministic Microtask Batching & Mutations
+- **Auto-Batching on Microtasks**: All signal mutations are queued and batched automatically on microtasks. The explicit `batch()` primitive is removed; synchronous draining is accomplished via `flush()`.
+- **`<Reveal>` Boundary Coordination**: Replaces `<SuspenseList>` to coordinate the display order (`order="sequential"|"together"|"natural"`) of sibling `<Loading>` boundaries.
+- **Generator-based `action()` & `createOptimisticStore()`**: Built-in primitives for mutations with optimistic state rollbacks.
+
+### 5. Performance Internals & rc.9 Refinements
 The `2.0.0-rc.9` release incorporates deep internal optimizations:
 - **Lazy Proxy Views for `merge()` and `omit()`**: Replaces eager object copying with O(1) proxy views over flattened sources, reducing memory consumption by 3–7× and accelerating SSR polymorphic attribute rendering by ~2.4×.
 - **Direct Leaf Property Access**: `spread()` and `ssrElement()` read terminal values directly, bypassing proxy traps during effect re-executions.
@@ -49,4 +54,7 @@ Explore the Solid 2.0 guides, concepts, and API references:
 | **Reference** | [createMemo](/v2/reference/basic-reactivity/create-memo) | Synchronous and asynchronous memoized computations. |
 | **Reference** | [<For>](/v2/reference/components/for) | List rendering component supporting both keyed and non-keyed iteration. |
 | **Reference** | [<Loading> and <Errored>](/v2/reference/components/loading-errored) | Boundary components for managing asynchronous state and failures. |
+| **Reference** | [<Reveal>](/v2/reference/components/reveal) | Coordinated sequential reveals across multiple `<Loading>` boundaries (replaces `<SuspenseList>`). |
+| **Reference** | [flush()](/v2/reference/reactive-utilities/flush) | Synchronously flush microtask auto-batched reactive updates (replaces `batch()`). |
+| **Reference** | [action & createOptimisticStore](/v2/reference/mutations/action-and-optimistic) | Generator-based mutations and optimistic updates with automatic rollback. |
 | **Reference** | [dynamic()](/v2/reference/rendering/dynamic) | Functional dynamic component mounting helper with namespace support. |
