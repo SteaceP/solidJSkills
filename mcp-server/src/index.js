@@ -17,6 +17,7 @@ import {
 } from './cache.js';
 import { registerResources } from './resources.js';
 import { registerPrompts } from './prompts.js';
+import { routeSolidIntent, auditSolidCode, getSolidChecklist } from './domain.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -668,6 +669,76 @@ server.registerTool(
         {
           type: 'text',
           text: JSON.stringify(ranked, null, 2)
+        }
+      ]
+    };
+  }
+);
+
+server.registerTool(
+  'route_solid_intent',
+  {
+    description:
+      'Route a SolidJS request or task prompt to the appropriate primary skill, domain subskill, and reference documentation using deterministic precedence.',
+    inputSchema: z
+      .object({
+        prompt: z.string().min(1).describe('The user prompt or coding task.'),
+        runtime_hint: z.string().optional().describe('Optional runtime hint: core, router, start, meta.')
+      })
+  },
+  async ({ prompt, runtime_hint }) => {
+    const result = routeSolidIntent(prompt, runtime_hint);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  }
+);
+
+server.registerTool(
+  'audit_solid_code',
+  {
+    description:
+      'Perform static heuristic analysis on SolidJS code for reactivity leaks, prop destructuring, missing control flow primitives, and anti-patterns.',
+    inputSchema: z
+      .object({
+        code: z.string().min(1).describe('SolidJS code snippet (JSX / TSX) to audit.')
+      })
+  },
+  async ({ code }) => {
+    const result = auditSolidCode(code);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  }
+);
+
+server.registerTool(
+  'get_solid_checklist',
+  {
+    description:
+      'Get standard SolidJS development review checklists (AGENTS.md) or list output contract schemas.',
+    inputSchema: z
+      .object({
+        type: z.enum(['review', 'contracts']).default('review').describe('Checklist type: review (default) or contracts.')
+      })
+  },
+  async ({ type = 'review' }) => {
+    const result = await getSolidChecklist(repoRoot, type);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
         }
       ]
     };

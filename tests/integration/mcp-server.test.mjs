@@ -93,7 +93,18 @@ async function runTests() {
         sendJsonRpc(serverProc, 'tools/list', {}, listToolsId);
         const toolsResp = await waitForResponse(serverProc, listToolsId);
         const toolNames = (toolsResp.result?.tools || []).map((t) => t.name);
-        const required = ['list_docs', 'read_doc', 'search_docs', 'list_corpus_docs', 'read_corpus_doc', 'search_corpus', 'resolve_solid_api'];
+        const required = [
+            'list_docs',
+            'read_doc',
+            'search_docs',
+            'list_corpus_docs',
+            'read_corpus_doc',
+            'search_corpus',
+            'resolve_solid_api',
+            'route_solid_intent',
+            'audit_solid_code',
+            'get_solid_checklist'
+        ];
         for (const name of required) {
             if (!toolNames.includes(name)) {
                 errors.push(`tools/list: missing tool '${name}'`);
@@ -469,6 +480,42 @@ async function runTests() {
             errors.push('search_corpus (full_text): expected snippet containing match phrase');
         }
 
+        // 29. Call route_solid_intent
+        const routeIntentId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'route_solid_intent',
+            arguments: { prompt: 'Fixing hydration mismatch in SSR component' }
+        }, routeIntentId);
+        const routeIntentResp = await waitForResponse(serverProc, routeIntentId);
+        const routeIntentParsed = JSON.parse(routeIntentResp.result?.content?.[0]?.text || '{}');
+        if (routeIntentParsed.primary_skill !== 'solid-reviewer' || routeIntentParsed.secondary_skill !== 'solid-ssr-hydration-debugger') {
+            errors.push(`route_solid_intent: expected solid-reviewer + solid-ssr-hydration-debugger, got: ${JSON.stringify(routeIntentParsed)}`);
+        }
+
+        // 30. Call audit_solid_code
+        const auditCodeId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'audit_solid_code',
+            arguments: { code: 'function MyComp({ count, title }) { return <div>{title}</div>; }' }
+        }, auditCodeId);
+        const auditCodeResp = await waitForResponse(serverProc, auditCodeId);
+        const auditCodeParsed = JSON.parse(auditCodeResp.result?.content?.[0]?.text || '{}');
+        if (!auditCodeParsed.issues?.some((i) => i.rule === 'no-destructure-props')) {
+            errors.push(`audit_solid_code: expected no-destructure-props rule trigger, got: ${JSON.stringify(auditCodeParsed)}`);
+        }
+
+        // 31. Call get_solid_checklist
+        const getChecklistId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'get_solid_checklist',
+            arguments: { type: 'review' }
+        }, getChecklistId);
+        const getChecklistResp = await waitForResponse(serverProc, getChecklistId);
+        const getChecklistParsed = JSON.parse(getChecklistResp.result?.content?.[0]?.text || '{}');
+        if (!getChecklistParsed.items?.some((i) => i.category?.includes('Reactivity Correctness'))) {
+            errors.push(`get_solid_checklist: expected Reactivity Correctness category, got: ${JSON.stringify(getChecklistParsed)}`);
+        }
+
     } finally {
         serverProc.kill('SIGTERM');
         await new Promise((r) => setTimeout(r, 200));
@@ -482,7 +529,7 @@ async function runTests() {
         return;
     }
 
-    console.log('MCP integration tests passed (28 checks).');
+    console.log('MCP integration tests passed (31 checks).');
 }
 
 runTests().catch((err) => {
