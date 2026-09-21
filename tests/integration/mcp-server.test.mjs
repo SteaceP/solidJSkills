@@ -325,6 +325,30 @@ async function runTests() {
             errors.push(`read_corpus_doc (missing): expected missing document message, got: ${readCorpusMissingText}`);
         }
 
+        // 18. Call read_corpus_doc with typo doc_id to test fuzzy suggestions
+        const readCorpusTypoId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'read_corpus_doc',
+            arguments: { doc_id: 'solid-core.reference.basic-reactivity.create-signa' }
+        }, readCorpusTypoId);
+        const readCorpusTypoResp = await waitForResponse(serverProc, readCorpusTypoId);
+        const readCorpusTypoText = readCorpusTypoResp.result?.content?.[0]?.text || '';
+        if (!readCorpusTypoText.includes('Did you mean') || !readCorpusTypoText.includes('create-signal')) {
+            errors.push(`read_corpus_doc (typo suggestions): expected fuzzy suggestion for create-signal, got: ${readCorpusTypoText}`);
+        }
+
+        // 19. Call read_doc with non-existent file inside allowed root
+        const readDocMissingId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'read_doc',
+            arguments: { path: 'skills/solid-component-xyz-missing.md' }
+        }, readDocMissingId);
+        const readDocMissingResp = await waitForResponse(serverProc, readDocMissingId);
+        const readDocMissingText = readDocMissingResp.result?.content?.[0]?.text || '';
+        if (!readDocMissingResp.result?.isError || !readDocMissingText.includes('Document not found on disk')) {
+            errors.push(`read_doc (missing file): expected isError and not found message, got: ${JSON.stringify(readDocMissingResp)}`);
+        }
+
     } finally {
         serverProc.kill('SIGTERM');
         await new Promise((r) => setTimeout(r, 200));
@@ -338,7 +362,7 @@ async function runTests() {
         return;
     }
 
-    console.log('MCP integration tests passed (17 checks).');
+    console.log('MCP integration tests passed (19 checks).');
 }
 
 runTests().catch((err) => {

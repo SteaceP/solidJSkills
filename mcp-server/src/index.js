@@ -5,6 +5,12 @@ import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
+import {
+  getManifest,
+  getManifestEntry,
+  getRepositoryDocs,
+  findSimilarDocs
+} from './cache.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,8 +61,7 @@ async function resolveDocPath(inputPath) {
 
   // 1. Check if inputPath is a doc_id in manifest
   try {
-    const manifest = await loadManifest();
-    const entry = manifest.find((item) => item.doc_id === trimmed);
+    const entry = await getManifestEntry(manifestPath, trimmed);
     if (entry) {
       const normalizedPath = entry.normalized_path || entry.source_path;
       return path.resolve(normalizedDocsRoot, normalizedPath);
@@ -106,49 +111,12 @@ async function resolveDocPath(inputPath) {
   return normalizePath(cleaned);
 }
 
-async function walkFiles(dir) {
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  const files = [];
-
-  for (const entry of entries) {
-    if (entry.name === '.git') continue;
-
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...(await walkFiles(fullPath)));
-    } else if (entry.isFile()) {
-      files.push(fullPath);
-    }
-  }
-
-  return files;
-}
-
 async function listRepositoryDocs() {
-  const roots = ALLOWED_DIRS.map((d) => path.resolve(repoRoot, d));
-  const output = [];
-
-  for (const root of roots) {
-    try {
-      const files = await walkFiles(root);
-      for (const file of files) {
-        output.push(path.relative(repoRoot, file));
-      }
-    } catch {
-      // Skip roots that do not exist.
-    }
-  }
-
-  return output.sort((a, b) => a.localeCompare(b));
+  return getRepositoryDocs(repoRoot, ALLOWED_DIRS);
 }
 
 async function loadManifest() {
-  const content = await fs.readFile(manifestPath, 'utf8');
-  return content
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => JSON.parse(line));
+  return getManifest(manifestPath);
 }
 
 function filterManifestEntries(entries, { packageName, topic }) {
@@ -258,18 +226,50 @@ server.registerTool(
       })
   },
   async ({ path: documentPath }) => {
-    const fullPath = await resolveDocPath(documentPath);
-    const contents = await fs.readFile(fullPath, 'utf8');
-    const relativePath = path.relative(repoRoot, fullPath);
+    let fullPath;
+    try {
+      fullPath = await resolveDocPath(documentPath);
+    } catch (err) {
+      return {
+        isError: true,
+        content: [
+          {
+            type: 'text',
+            text: err.message
+          }
+        ]
+      };
+    }
 
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `# ${relativePath}\n\n${contents}`
+    try {
+      const contents = await fs.readFile(fullPath, 'utf8');
+      const relativePath = path.relative(repoRoot, fullPath);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `# ${relativePath}\n\n${contents}`
+          }
+        ]
+      };
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        const suggestions = await findSimilarDocs(manifestPath, repoRoot, ALLOWED_DIRS, documentPath);
+        let msg = `Document not found on disk: '${documentPath}'.`;
+        if (suggestions.length > 0) {
+          msg += `\n\nDid you mean:\n${suggestions.map((s) => `  - ${s.identifier} (${s.path})`).join('\n')}`;
         }
-      ]
-    };
+        return {
+          isError: true,
+          content: [{ type: 'text', text: msg }]
+        };
+      }
+      return {
+        isError: true,
+        content: [{ type: 'text', text: `Failed to read document: ${err.message}` }]
+      };
+    }
   }
 );
 
@@ -443,15 +443,20 @@ server.registerTool(
       })
   },
   async ({ doc_id: docId, source = 'normalized' }) => {
-    const manifest = await loadManifest();
-    const entry = manifest.find((item) => item.doc_id === docId);
+    const entry = await getManifestEntry(manifestPath, docId);
 
     if (!entry) {
+      const suggestions = await findSimilarDocs(manifestPath, repoRoot, ALLOWED_DIRS, docId);
+      let text = `No corpus document found for doc_id '${docId}'.`;
+      if (suggestions.length > 0) {
+        text += ` Did you mean:\n${suggestions.map((s) => `  - ${s.identifier}`).join('\n')}`;
+      }
       return {
+        isError: true,
         content: [
           {
             type: 'text',
-            text: `No corpus document found for doc_id '${docId}'.`
+            text
           }
         ]
       };
