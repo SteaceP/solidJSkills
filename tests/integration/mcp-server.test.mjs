@@ -103,7 +103,8 @@ async function runTests() {
             'resolve_solid_api',
             'route_solid_intent',
             'audit_solid_code',
-            'get_solid_checklist'
+            'get_solid_checklist',
+            'detect_solid_version'
         ];
         for (const name of required) {
             if (!toolNames.includes(name)) {
@@ -600,6 +601,42 @@ async function runTests() {
             errors.push(`audit_solid_code (prop-copy): expected no-untracked-prop-copy rule trigger, got: ${JSON.stringify(auditPropCopyParsed)}`);
         }
 
+        // 39. Call detect_solid_version for SolidJS 1.x default / package.json
+        const detectV1Id = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'detect_solid_version',
+            arguments: { package_json: JSON.stringify({ dependencies: { 'solid-js': '^1.8.15' } }) }
+        }, detectV1Id);
+        const detectV1Resp = await waitForResponse(serverProc, detectV1Id);
+        const detectV1Parsed = JSON.parse(detectV1Resp.result?.content?.[0]?.text || '{}');
+        if (detectV1Parsed.detected_version !== '1.x' || detectV1Parsed.is_v2 !== false || !detectV1Parsed.approved_primitives?.primitive_lists?.includes('<Index')) {
+            errors.push(`detect_solid_version (1.x): expected 1.x with <Index>, got: ${JSON.stringify(detectV1Parsed)}`);
+        }
+
+        // 40. Call detect_solid_version for SolidJS 2.0-rc
+        const detectV2Id = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'detect_solid_version',
+            arguments: { package_json: JSON.stringify({ dependencies: { 'solid-js': '^2.0.0-rc.9' } }) }
+        }, detectV2Id);
+        const detectV2Resp = await waitForResponse(serverProc, detectV2Id);
+        const detectV2Parsed = JSON.parse(detectV2Resp.result?.content?.[0]?.text || '{}');
+        if (detectV2Parsed.detected_version !== '2.0-rc' || detectV2Parsed.is_v2 !== true || !detectV2Parsed.approved_primitives?.primitive_lists?.includes('keyed={false}')) {
+            errors.push(`detect_solid_version (2.0-rc): expected 2.0-rc with keyed={false}, got: ${JSON.stringify(detectV2Parsed)}`);
+        }
+
+        // 41. Call detect_solid_version for prohibited version mixing
+        const detectMixedId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'detect_solid_version',
+            arguments: { code: '<Index each={items()}>{(item) => <Loading fallback={<Spin/>}>{item()}</Loading>}</Index>' }
+        }, detectMixedId);
+        const detectMixedResp = await waitForResponse(serverProc, detectMixedId);
+        const detectMixedParsed = JSON.parse(detectMixedResp.result?.content?.[0]?.text || '{}');
+        if (!detectMixedParsed.version_mixing_detected || detectMixedParsed.detected_version !== 'mixed') {
+            errors.push(`detect_solid_version (mixed): expected version_mixing_detected=true, got: ${JSON.stringify(detectMixedParsed)}`);
+        }
+
     } finally {
         serverProc.kill('SIGTERM');
         await new Promise((r) => setTimeout(r, 200));
@@ -613,7 +650,7 @@ async function runTests() {
         return;
     }
 
-    console.log('MCP integration tests passed (38 checks).');
+    console.log('MCP integration tests passed (41 checks).');
 }
 
 runTests().catch((err) => {

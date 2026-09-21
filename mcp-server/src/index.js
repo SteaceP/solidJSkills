@@ -17,7 +17,7 @@ import {
 } from './cache.js';
 import { registerResources } from './resources.js';
 import { registerPrompts } from './prompts.js';
-import { routeSolidIntent, auditSolidCode, getSolidChecklist } from './domain.js';
+import { routeSolidIntent, auditSolidCode, getSolidChecklist, detectSolidVersion } from './domain.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -734,6 +734,30 @@ server.registerTool(
   },
   async ({ type = 'review' }) => {
     const result = await getSolidChecklist(repoRoot, type);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  }
+);
+
+server.registerTool(
+  'detect_solid_version',
+  {
+    description:
+      'Analyze package.json and/or code snippets to detect target SolidJS framework version (1.x Production Stable vs 2.0-rc.9), return approved and forbidden primitives, and check for prohibited version mixing.',
+    inputSchema: z
+      .object({
+        package_json: z.string().optional().describe('Optional contents of package.json to inspect "solid-js" dependency.'),
+        code: z.string().optional().describe('Optional SolidJS code snippet to inspect for v1 vs v2 primitives and version mixing.')
+      })
+  },
+  async ({ package_json, code }) => {
+    const result = detectSolidVersion({ packageJson: package_json, code });
     return {
       content: [
         {

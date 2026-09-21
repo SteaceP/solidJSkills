@@ -11,7 +11,8 @@ This extension provides documentation and skill tools for the solidJSkills repos
 ## Tool usage
 
 - **Intent & Skill Routing**: Use `route_solid_intent` with the user prompt to identify the primary skill and secondary subskill.
-- **Reactivity & Code Auditing**: Use `audit_solid_code` to statically check SolidJS code snippets for prop destructuring, effect abuse, and anti-patterns.
+- **Framework Version Detection**: Use `detect_solid_version` with `package.json` or code snippet to verify targeted version conventions (1.x vs 2.0-rc.9) and detect prohibited version mixing.
+- **Reactivity & Code Auditing**: Use `audit_solid_code` to statically check SolidJS code snippets for prop destructuring, effect abuse, SSR globals, memo mutations, and anti-patterns.
 - **Quality Checklists**: Use `get_solid_checklist` (`type='review'`) to retrieve the AGENTS.md verification criteria.
 - **API Symbols & Primitives**: Use `resolve_solid_api` for API symbols (e.g. `createSignal`, `useNavigate`, `Show`, `onMount`).
 - **Corpus & Topic Search**: Use `search_corpus` (supports `full_text: true`) or `search_docs` when searching by topic, keyword, code phrase, or concept.

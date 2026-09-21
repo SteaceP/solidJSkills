@@ -609,3 +609,207 @@ export async function getSolidChecklist(repoRoot, type = 'review') {
     message: `Checklist for '${type}' generated. Use type='review' or type='contracts'.`
   };
 }
+
+/**
+ * Detect targeted SolidJS framework version and evaluate approved / forbidden primitives.
+ */
+export function detectSolidVersion({ packageJson, code } = {}) {
+  const rationale = [];
+  const mixingIssues = [];
+  let detectedVersion = null;
+  let isV2 = false;
+  let source = null;
+
+  // 1. Inspect package.json if provided
+  if (packageJson && typeof packageJson === 'string') {
+    let pkg = null;
+    try {
+      pkg = JSON.parse(packageJson);
+    } catch {
+      // Fallback regex if partial snippet or malformed JSON
+      const depMatch = /["']solid-js["']\s*:\s*["']([^"']+)["']/.exec(packageJson);
+      if (depMatch) {
+        pkg = { dependencies: { 'solid-js': depMatch[1] } };
+      }
+    }
+
+    if (pkg) {
+      const solidVersion =
+        pkg.dependencies?.['solid-js'] ||
+        pkg.devDependencies?.['solid-js'] ||
+        pkg.peerDependencies?.['solid-js'];
+
+      if (solidVersion) {
+        if (/2\.0|2\.0\.0-rc|\^2\./.test(solidVersion)) {
+          detectedVersion = '2.0-rc';
+          isV2 = true;
+          source = 'package.json';
+          rationale.push(`package.json specifies SolidJS 2.0 release candidate: "solid-js": "${solidVersion}".`);
+        } else if (/1\.|^1\./.test(solidVersion)) {
+          detectedVersion = '1.x';
+          isV2 = false;
+          source = 'package.json';
+          rationale.push(`package.json specifies SolidJS 1.x stable: "solid-js": "${solidVersion}".`);
+        } else {
+          rationale.push(`package.json contains unspecified or wildcard version "${solidVersion}"; defaulting to SolidJS 1.x.`);
+          detectedVersion = '1.x';
+          isV2 = false;
+          source = 'package.json';
+        }
+      } else {
+        rationale.push('No "solid-js" dependency found in package.json; defaulting to SolidJS 1.x.');
+      }
+    }
+  }
+
+  // 2. Inspect code snippet if provided
+  if (code && typeof code === 'string') {
+    const hasV1Index = /<Index\b/.test(code);
+    const hasV1Suspense = /<Suspense\b/.test(code);
+    const hasV1Dynamic = /<Dynamic\b/.test(code);
+    const hasV1SuspenseList = /<SuspenseList\b/.test(code);
+    const hasV1CreateResource = /\bcreateResource\b/.test(code);
+    const hasV1Batch = /\bbatch\s*\(/.test(code);
+
+    const hasV2Loading = /<Loading\b/.test(code);
+    const hasV2Errored = /<Errored\b/.test(code);
+    const hasV2Reveal = /<Reveal\b/.test(code);
+    const hasV2ForKeyedFalse = /<For[^>]+keyed=\{false\}/.test(code);
+    const hasV2Dynamic = /\bdynamic\s*\(/.test(code);
+    const hasV2Flush = /\bflush\s*\(/.test(code);
+    const hasV2OptimisticStore = /\bcreateOptimisticStore\b/.test(code);
+
+    const v1Features = [];
+    if (hasV1Index) v1Features.push('<Index>');
+    if (hasV1Suspense) v1Features.push('<Suspense>');
+    if (hasV1Dynamic) v1Features.push('<Dynamic>');
+    if (hasV1SuspenseList) v1Features.push('<SuspenseList>');
+    if (hasV1CreateResource) v1Features.push('createResource');
+    if (hasV1Batch) v1Features.push('batch()');
+
+    const v2Features = [];
+    if (hasV2Loading) v2Features.push('<Loading>');
+    if (hasV2Errored) v2Features.push('<Errored>');
+    if (hasV2Reveal) v2Features.push('<Reveal>');
+    if (hasV2ForKeyedFalse) v2Features.push('<For keyed={false}>');
+    if (hasV2Dynamic) v2Features.push('dynamic()');
+    if (hasV2Flush) v2Features.push('flush()');
+    if (hasV2OptimisticStore) v2Features.push('createOptimisticStore()');
+
+    if (v1Features.length > 0 && v2Features.length > 0) {
+      mixingIssues.push(`Prohibited version mixing: Code contains both Solid 1.x features (${v1Features.join(', ')}) and Solid 2.0-rc features (${v2Features.join(', ')}).`);
+      rationale.push('Detected mixed v1 and v2 API syntax in code snippet.');
+      detectedVersion = 'mixed';
+    } else if (v2Features.length > 0) {
+      rationale.push(`Code contains Solid 2.0-rc specific features: ${v2Features.join(', ')}.`);
+      if (detectedVersion === '1.x' && source === 'package.json') {
+        mixingIssues.push(`Version mismatch: package.json targets Solid 1.x, but code snippet utilizes Solid 2.0-rc primitives (${v2Features.join(', ')}).`);
+      } else if (!detectedVersion) {
+        detectedVersion = '2.0-rc';
+        isV2 = true;
+        source = 'code';
+      }
+    } else if (v1Features.length > 0) {
+      rationale.push(`Code contains Solid 1.x specific features: ${v1Features.join(', ')}.`);
+      if (detectedVersion === '2.0-rc' && source === 'package.json') {
+        mixingIssues.push(`Version mismatch: package.json targets Solid 2.0-rc, but code snippet utilizes Solid 1.x primitives (${v1Features.join(', ')}).`);
+      } else if (!detectedVersion) {
+        detectedVersion = '1.x';
+        isV2 = false;
+        source = 'code';
+      }
+    }
+  }
+
+  // 3. Fallback to default
+  if (!detectedVersion) {
+    detectedVersion = '1.x';
+    isV2 = false;
+    rationale.push('Defaulting to SolidJS 1.x (Production Stable) per repository AGENTS.md standard.');
+  }
+
+  const versionMixingDetected = mixingIssues.length > 0;
+
+  const approvedPrimitives = isV2
+    ? {
+        version: 'SolidJS 2.0-rc.9',
+        primitive_lists: '<For each={list()} keyed={false}>{(item, i) => ...}</For>',
+        keyed_lists: '<For each={list()} keyed>{(item, i) => ...}</For>',
+        async_boundaries: '<Loading fallback={<Spinner />}> and <Errored fallback={(err) => ...}>',
+        boundary_reveal: '<Reveal order="sequential"|"together"|"natural" collapsed>',
+        async_data: 'Direct async reactive graph: createMemo(async () => ...) or promises in computations',
+        batching: 'Auto-batched on microtask; flush() for synchronous draining',
+        dynamic_element: 'Functional dynamic(Tag) helper',
+        mutations: 'Generator action(function* () { yield ... }) and createOptimisticStore()',
+        ssr_metaframework: '@solidjs/vite-plugin Start Mode'
+      }
+    : {
+        version: 'SolidJS 1.x',
+        primitive_lists: '<Index each={list()}>{(item, i) => ...}</Index>',
+        keyed_lists: '<For each={list()}>{(item, i) => ...}</For>',
+        async_boundaries: '<Suspense fallback={<Spinner />}> and <ErrorBoundary fallback={...}>',
+        boundary_reveal: '<SuspenseList revealOrder="..." tail="...">',
+        async_data: 'createResource(source, fetcher)',
+        batching: 'Explicit batch(() => { ... })',
+        dynamic_element: '<Dynamic component={Tag} {...props} />',
+        mutations: 'Manual signals or @solidjs/router action',
+        ssr_metaframework: '@solidjs/start (Vinxi)'
+      };
+
+  const forbiddenPrimitives = isV2
+    ? [
+        '<Index> (replaced by <For keyed={false}>)',
+        '<Suspense> (replaced by <Loading>)',
+        '<SuspenseList> (replaced by <Reveal>)',
+        '<Dynamic component={Tag}> (replaced by dynamic(Tag))',
+        'createResource (replaced by native async graph)',
+        'batch() (replaced by auto-batching and flush())'
+      ]
+    : [
+        '<Loading> (requires Solid 2.0-rc)',
+        '<Errored> (requires Solid 2.0-rc)',
+        '<Reveal> (requires Solid 2.0-rc)',
+        '<For keyed={false}> (requires Solid 2.0-rc; use <Index> in v1)',
+        'dynamic(Tag) (requires Solid 2.0-rc; use <Dynamic component={Tag}> in v1)',
+        'createOptimisticStore (requires Solid 2.0-rc)'
+      ];
+
+  const citations = isV2
+    ? [
+        {
+          doc_id: 'solid-v2.concepts.async-reactivity',
+          claim: 'SolidJS 2.0 introduces first-class async reactive graph with <Loading> and <Errored> boundaries.'
+        },
+        {
+          doc_id: 'solid-v2.concepts.control-flow',
+          claim: 'SolidJS 2.0 replaces <Index> with <For keyed={false}> and replaces <Dynamic> with dynamic().'
+        }
+      ]
+    : [
+        {
+          doc_id: 'solid-core.reference.basic-reactivity.create-signal',
+          claim: 'SolidJS 1.x uses fine-grained synchronous reactivity atoms and explicit batching.'
+        },
+        {
+          doc_id: 'solid-core.reference.components.suspense',
+          claim: 'SolidJS 1.x uses <Suspense> and createResource for asynchronous data boundaries.'
+        }
+      ];
+
+  return {
+    detected_version: detectedVersion,
+    is_v2: isV2,
+    status:
+      detectedVersion === 'mixed'
+        ? 'Mixed / Prohibited'
+        : isV2
+        ? 'Release Candidate (2.0.0-rc.9)'
+        : 'Production Stable (Default)',
+    version_mixing_detected: versionMixingDetected,
+    mixing_issues: mixingIssues,
+    rationale,
+    approved_primitives: approvedPrimitives,
+    forbidden_primitives: forbiddenPrimitives,
+    citations
+  };
+}
