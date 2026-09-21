@@ -1,127 +1,88 @@
-# createStore
+# Create Store
 
-Stores were intentionally designed to manage data structures like objects and arrays but are capable of handling other data types, such as strings and numbers.
+`createStore` creates a reactive store and setter function for structured state.
 
-* * *
+## Import
 
-## Types Signature
-
+```ts
+import { createStore } from "solid-js/store";
 ```
-import { createStore } from "solid-js/store"
+## Type
 
-import type { StoreNode, Store, SetStoreFunction } from "solid-js/store"
+```ts
+type Store<T> = T;
 
-function createStore<T extends StoreNode>(
+interface SetStoreFunction<T> {
+	(setter: T | Partial<T> | ((prev: T) => T | Partial<T>)): void;
+	(...path: unknown[]): void;
+}
 
-  state: T | Store<T>
-
-): [get: Store<T>, set: SetStoreFunction<T>];
-
-type Store<T> = T; // conceptually readonly, but not typed as such
+function createStore<T extends object = {}>(
+	store?: T | Store<T>,
+	options?: { name?: string }
+): [Store<T>, SetStoreFunction<T>];
 ```
-* * *
+## Parameters
 
-## Usage
+### `store`
 
-```
+- **Type:** `T | Store<T>`
+
+Initial store value.
+
+### `options`
+
+#### `name`
+
+- **Type:** `string`
+
+Debug name used by development tooling.
+
+## Return value
+
+- **Type:** `[Store<T>, SetStoreFunction<T>]`
+
+Tuple containing the store proxy and its setter.
+
+## Behavior
+
+- The returned store is read through a proxy, and property reads track at the property level.
+- The setter supports both top-level updates and path syntax for nested updates.
+- Object updates shallow-merge by default, while single-array updates replace array contents. Setting a property to `undefined` deletes it.
+- Getters defined on the initial object remain available on the store.
+
+## Examples
+
+### Basic usage
+
+```tsx
 import { createStore } from "solid-js/store";
 
-// Initialize store
-
-const [store, setStore] = createStore({
-
-  userCount: 3,
-
-  users: [
-
-    {
-
-      id: 0,
-
-      username: "felix909",
-
-      location: "England",
-
-      loggedIn: false,
-
-    },
-
-    {
-
-      id: 1,
-
-      username: "tracy634",
-
-      location: "Canada",
-
-      loggedIn: true,
-
-    },
-
-    {
-
-      id: 1,
-
-      username: "johny123",
-
-      location: "India",
-
-      loggedIn: true,
-
-    },
-
-  ],
-
-});
-```
-* * *
-
-## Getter
-
-Store objects support the use of getters to store derived values.
-
-```
 const [state, setState] = createStore({
-
-  user: {
-
-    firstName: "John",
-
-    lastName: "Smith",
-
-    get fullName() {
-
-      return `${this.firstName} ${this.lastName}`;
-
-    },
-
-  },
-
-});
-```
-* * *
-
-## Setter
-
-Changes can take the form of function that passes previous state and returns new state or a value. Objects are always shallowly merged. Set values to undefined to delete them from the Store. In TypeScript, you can delete a value by using a non-null assertion, like `undefined!`.
-
-```
-const [state, setState] = createStore({
-
-  firstName: "John",
-
-  lastName: "Miller",
-
+	user: {
+		firstName: "John",
+		lastName: "Smith",
+	},
 });
 
-setState({ firstName: "Johnny", middleName: "Lee" });
-
-// ({ firstName: 'Johnny', middleName: 'Lee', lastName: 'Miller' })
-
-setState((state) => ({ preferredName: state.firstName, lastName: "Milner" }));
-
-// ({ firstName: 'Johnny', preferredName: 'Johnny', middleName: 'Lee', lastName: 'Milner' })
+setState("user", "firstName", "Jane");
 ```
-* * *
+### Getter
 
-To learn more about using stores check the [Stores Guide](../../concepts/stores.md), and the **Store utilities** section for more advanced APIs.
+```tsx
+import { createStore } from "solid-js/store";
+
+const [state] = createStore({
+	user: {
+		firstName: "John",
+		lastName: "Smith",
+		get fullName() {
+			return `${this.firstName} ${this.lastName}`;
+		},
+	},
+});
+```
+## Related
+
+- [`createMutable`](create-mutable.md)
+- [Stores](../../concepts/stores.md)

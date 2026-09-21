@@ -1,203 +1,181 @@
-# createAsync
+# Create Async
 
-The `createAsync` primitive manages asynchronous data fetching by tracking the result of a promise-returning function.
-
-`createAsync` is currently a thin wrapper over `createResource`. While `createResource` offers similar functionality, **`createAsync` is the recommended primitive for most asynchronous data fetching**. It is intended to be the standard async primitive in a future Solid 2.0 release.
-
-* * *
+`createAsync` is a wrapper around `createResource` that tracks a promise-returning function and returns the resolved value through an accessor with a `latest` property.
 
 ## Import
 
-```
+```tsx
 import { createAsync } from "@solidjs/router";
 ```
-* * *
-
 ## Type
 
-```
+```tsx
+type AccessorWithLatest<T> = {
+	(): T;
+	latest: T;
+};
+
 function createAsync<T>(
-
-  fn: (prev: T) => Promise<T>,
-
-  options: {
-
-    name?: string;
-
-    initialValue: T;
-
-    deferStream?: boolean;
-
-  }
-
+	fn: (prev: T) => Promise<T>,
+	options: {
+		name?: string;
+		initialValue: T;
+		deferStream?: boolean;
+	}
 ): AccessorWithLatest<T>;
 
 function createAsync<T>(
-
-  fn: (prev: T | undefined) => Promise<T>,
-
-  options?: {
-
-    name?: string;
-
-    initialValue?: T;
-
-    deferStream?: boolean;
-
-  }
-
+	fn: (prev: T | undefined) => Promise<T>,
+	options?: {
+		name?: string;
+		initialValue?: T;
+		deferStream?: boolean;
+	}
 ): AccessorWithLatest<T | undefined>;
 ```
-* * *
-
 ## Parameters
 
-### `fetcher`
+### `fn`
 
 - **Type:** `(prev: T | undefined) => Promise<T>`
 - **Required:** Yes
 
-An asynchronous function or a function that returns a `Promise`. The resolved value of this `Promise` is what `createAsync` tracks. This function is reactive and will automatically re-execute if any of its dependencies change.
+Promise-returning function used as the async resource fetcher.
+The resolved value is returned by the accessor.
+Synchronous reactive reads made while `fn` runs are tracked, causing the resource to rerun when those dependencies change.
 
 ### `options`
 
-- **Type:** `{ name?: string; initialValue?: T; deferStream?: boolean; }`
+- **Type:** `{ name?: string; initialValue?: T; deferStream?: boolean }`
 - **Required:** No
 
-An object for configuring the primitive. It has the following properties:
+Options for the resource name, initial value, and server streaming.
 
 #### `name`
 
 - **Type:** `string`
 - **Required:** No
 
-A name for the resource, used for identification in debugging tools like [Solid Debugger](https://github.com/thetarnav/solid-devtools).
+Name used by the resource for development debugging.
 
 #### `initialValue`
 
 - **Type:** `T`
 - **Required:** No
 
-The initial value of the returned signal before the fetcher finishes executing.
+Initial value returned by the accessor before the async function resolves.
 
 #### `deferStream`
 
 - **Type:** `boolean`
+- **Default:** `false`
 - **Required:** No
 
-If `true`, [streaming](../../data-fetching/streaming.md) will be deferred until the fetcher finishes executing.
-
-* * *
+When `true`, [streaming](../../data-fetching/streaming.md) waits for this resource to resolve before flushing.
 
 ## Return value
 
-`createAsync` returns a derived signal that contains the resolved value of the fetcher.
+- **Type:** `AccessorWithLatest<T | undefined>`
 
-While the fetcher is executing for the first time, unless an `initialValue` is specified, the signal's value is `undefined`.
+Returns an accessor for the resolved value.
+Before the first resolution, the accessor returns `initialValue` when provided and `undefined` otherwise.
 
-* * *
+### `latest`
+
+- **Type:** `T | undefined`
+
+Getter that reads the `latest` value from the `createResource` result.
+
+## Behavior
+
+- Calls `createResource` internally.
+- `fn` receives the previous latest value when the resource has resolved, or `undefined` while unresolved.
+- The previous-value read is wrapped in `untrack`.
+- The returned accessor reads the current resource value, and `latest` reads `resource.latest`.
+- During hydration, `window.fetch` and `Promise` are temporarily replaced with mock implementations while `fn` runs.
 
 ## Examples
 
 ### Basic usage
 
-```
+```tsx
 import { createAsync, query } from "@solidjs/router";
 
 const getCurrentUser = query(async () => {
-
-  // ... Fetches the current authenticated user from the server.
-
+	const response = await fetch("/api/current-user");
+	return response.json() as Promise<{ name: string }>;
 }, "currentUser");
 
 function UserProfile() {
+	const user = createAsync(() => getCurrentUser());
 
-  const user = createAsync(() => getCurrentUser());
-
-  return <div>{user()?.name}</div>;
-
+	return <div>{user()?.name}</div>;
 }
 ```
 ### With parameter
 
-```
+```tsx
 import { createAsync, query } from "@solidjs/router";
 
-const getInvoiceQuery = query(async (invoiceId: string) => {
+type Invoice = {
+	number: string;
+	total: number;
+};
 
-  // ... Fetches the invoice details from the server.
-
+const getInvoice = query(async (invoiceId: string) => {
+	const response = await fetch(`/api/invoices/${invoiceId}`);
+	return response.json() as Promise<Invoice>;
 }, "invoice");
 
 function InvoiceDetails(props: { invoiceId: string }) {
+	const invoice = createAsync(() => getInvoice(props.invoiceId));
 
-  const invoice = createAsync(() => getInvoiceQuery(props.invoiceId));
-
-  return (
-
-    <div>
-
-      <h2>Invoice #{invoice()?.number}</h2>
-
-      <p>Total: ${invoice()?.total}</p>
-
-    </div>
-
-  );
-
+	return (
+		<div>
+			<h2>Invoice #{invoice()?.number}</h2>
+			<p>Total: ${invoice()?.total}</p>
+		</div>
+	);
 }
 ```
-### With error handling and pending state
+### With Suspense and ErrorBoundary
 
-```
+```tsx
+import { ErrorBoundary, For, Suspense } from "solid-js";
 import { createAsync, query } from "@solidjs/router";
 
-import { Suspense, ErrorBoundary, For } from "solid-js";
+type Recipe = {
+	name: string;
+	time: string;
+};
 
-const getAllRecipesQuery = query(async () => {
-
-  // ... Fetches the recipes from the server and throws an error if an issue occurred.
-
+const getRecipes = query(async () => {
+	const response = await fetch("/api/recipes");
+	return response.json() as Promise<Recipe[]>;
 }, "recipes");
 
 function Recipes() {
+	const recipes = createAsync(() => getRecipes());
 
-  const recipes = createAsync(() => getAllRecipesQuery());
-
-  return (
-
-    <ErrorBoundary fallback={<p>Couldn't fetch any recipes!</p>}>
-
-      <Suspense fallback={<p>Fetching recipes...</p>}>
-
-        <For each={recipes()}>
-
-          {(recipe) => (
-
-            <div>
-
-              <h3>{recipe.name}</h3>
-
-              <p>Cook time: {recipe.time}</p>
-
-            </div>
-
-          )}
-
-        </For>
-
-      </Suspense>
-
-    </ErrorBoundary>
-
-  );
-
+	return (
+		<ErrorBoundary fallback={<p>Couldn't fetch any recipes.</p>}>
+			<Suspense fallback={<p>Fetching recipes...</p>}>
+				<For each={recipes()}>
+					{(recipe) => (
+						<div>
+							<h3>{recipe.name}</h3>
+							<p>Cook time: {recipe.time}</p>
+						</div>
+					)}
+				</For>
+			</Suspense>
+		</ErrorBoundary>
+	);
 }
 ```
-* * *
-
 ## Related
 
 - [`query`](query.md)
+- [`createAsyncStore`](create-async-store.md)
 - [`<Suspense>`](../../../reference/components/suspense.md)
 - [`<ErrorBoundary>`](../../../reference/components/error-boundary.md)

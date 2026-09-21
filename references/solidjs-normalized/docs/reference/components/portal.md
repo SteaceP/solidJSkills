@@ -1,39 +1,104 @@
-# &lt;Portal&gt;
+# Portal
 
-`<Portal>` is a component that allows you to render children into a DOM node that exists outside the DOM hierarchy of the parent component.
+`<Portal>` renders its children into a different DOM node while preserving the Solid component hierarchy.
 
-This is useful when your UI has some elements that need to appear on top of everything else, such as modals and tooltips.
+## Import
 
+```ts
+import { Portal } from "solid-js/web";
 ```
-import { Portal } from "solid-js/web"
+## Type
 
-import type { JSX } from "solid-js"
-
+```ts
 function Portal(props: {
-
-  mount?: Node
-
-  useShadow?: boolean
-
-  isSVG?: boolean
-
-  children: JSX.Element
-
-}): Text
+	mount?: Node;
+	useShadow?: boolean;
+	isSVG?: boolean;
+	ref?:
+		| HTMLDivElement
+		| SVGGElement
+		| ((el: HTMLDivElement | SVGGElement) => void);
+	children: JSX.Element;
+}): Text;
 ```
-This inserts the element in the mount node. Useful for inserting Modals outside of the page layout. Events still propagate through the component hierarchy, however `<Portal>` will only run on the client and has hydration *disabled*.
-
-The portal is mounted in a `<div>` unless the target is the document head. `useShadow` places the element in a Shadow Root for style isolation, and `isSVG` is required if inserting into an SVG element so that the `<div>` is not inserted.
-
-```
-<Portal mount={document.getElementById("modal")}>
-
-  <div>My Content</div>
-
-</Portal>
-```
-* * *
-
 ## Props
 
-NameTypeDefaultDescription`mount``Node`document.bodyThe DOM node to mount the portal in.`useShadow``boolean`falseWhether to use a Shadow Root for style isolation.`isSVG``boolean`falseWhether the mount node is an SVG element.
+### `mount`
+
+- **Type:** `Node`
+
+Mount point for the portal. When omitted, the portal mounts to `document.body`.
+
+### `useShadow`
+
+- **Type:** `boolean`
+
+Creates a shadow root on the portal container when supported.
+
+### `isSVG`
+
+- **Type:** `boolean`
+
+Creates an SVG `<g>` container instead of an HTML `<div>`.
+
+### `ref`
+
+- **Type:** `HTMLDivElement | SVGGElement | ((el: HTMLDivElement | SVGGElement) => void)`
+
+Receives the created portal container element. This is a `<div>` by default or a `<g>` when `isSVG` is `true`.
+
+### `children`
+
+- **Type:** `JSX.Element`
+
+Content rendered into the portal container.
+
+## Return value
+
+- **Type:** `Text`
+
+Returns a marker node used to preserve the portal position in the component tree.
+
+## Behavior
+
+- `<Portal>` renders its children outside the parent DOM hierarchy, but events still propagate through the Solid component hierarchy.
+- When the mount target is not `document.head`, the portal creates a container element and appends it to the mount target.
+- When the mount target is `document.head`, the portal inserts its children without creating that container element.
+- During server rendering, `<Portal>` returns no output.
+- Portals render only on the client and are skipped during hydration.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { createSignal, Show } from "solid-js";
+
+function App() {
+	const [open, setOpen] = createSignal(false);
+
+	return (
+		<>
+			<button onClick={() => setOpen(true)}>Open</button>
+
+			<Show when={open()}>
+				<Portal>
+					<div
+						style={{
+							position: "fixed",
+							top: "2rem",
+							left: "2rem",
+							padding: "1rem",
+							background: "white",
+							border: "1px solid #ccc",
+						}}
+					>
+						<div>Popup</div>
+						<button onClick={() => setOpen(false)}>Close</button>
+					</div>
+				</Portal>
+			</Show>
+		</>
+	);
+}
+```

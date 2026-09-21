@@ -1,26 +1,91 @@
-# hydrationScript
+# Hydration Script
 
+`HydrationScript` and `generateHydrationScript` generate Solid's SSR hydration bootstrap script.
+
+## Import
+
+```ts
+import { HydrationScript, generateHydrationScript } from "solid-js/web";
 ```
-import { generateHydrationScript, HydrationScript } from "solid-js/web"
+## Type
 
-import type { JSX } from "solid-js"
+```ts
+function HydrationScript(props: {
+	nonce?: string;
+	eventNames?: string[];
+}): JSX.Element;
 
 function generateHydrationScript(options: {
-
-  nonce?: string
-
-  eventNames?: string[]
-
-}): string
-
-function HydrationScript(props: {
-
-  nonce?: string
-
-  eventNames?: string[]
-
-}): JSX.Element
+	nonce?: string;
+	eventNames?: string[];
+}): string;
 ```
-Hydration Script is a special script that should be placed once on the page to bootstrap hydration before Solid's runtime has loaded. It comes both as a function that can be called and inserted in an HTML string, or as a Component if you are rendering JSX from the `<html>` tag.
+## `HydrationScript` props
 
-The options are for the **nonce** to be put on the script tag and any event names for that Solid should capture before scripts have loaded and replay during hydration. These events are limited to those that Solid delegates which include most UI Events that are composed and bubble. By default it is only click and input events.
+### `nonce`
+
+- **Type:** `string`
+
+Nonce applied to the generated `<script>` tag.
+
+### `eventNames`
+
+- **Type:** `string[]`
+
+Delegated event names captured before client scripts load.
+
+## `generateHydrationScript` options
+
+### `nonce`
+
+- **Type:** `string`
+
+Nonce applied to the generated script tag.
+
+### `eventNames`
+
+- **Type:** `string[]`
+
+Delegated event names captured before client scripts load.
+
+## Return value
+
+- **Type:** `JSX.Element` for `HydrationScript`, `string` for `generateHydrationScript`
+
+## Behavior
+
+- The generated script initializes `window._$HY` and bootstraps delegated event replay before the runtime loads.
+- The default captured delegated events are `"click"` and `"input"` unless `eventNames` is overridden.
+- Place the generated script once in the server-rendered document when the page will hydrate on the client.
+- `HydrationScript` returns JSX for server-rendered HTML output, and `generateHydrationScript` returns a string for manual HTML generation.
+- In browser bundles, these exports are placeholders that return `undefined`.
+
+## Examples
+
+### `HydrationScript`
+
+```tsx
+import { HydrationScript } from "solid-js/web";
+import type { JSX } from "solid-js";
+
+function Html(props: { children: JSX.Element }) {
+	return (
+		<html lang="en">
+			<head>
+				<HydrationScript />
+			</head>
+			<body>{props.children}</body>
+		</html>
+	);
+}
+```
+### `generateHydrationScript`
+
+```ts
+import { generateHydrationScript } from "solid-js/web";
+
+const script = generateHydrationScript({ nonce: "nonce-value" });
+```
+## Related
+
+- [`hydrate`](hydrate.md)

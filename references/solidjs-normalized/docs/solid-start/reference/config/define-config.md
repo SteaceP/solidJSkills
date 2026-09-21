@@ -1,28 +1,21 @@
-# defineConfig
+# Define Config
 
 The `defineConfig` helper is from `@solidjs/start/config` and is used within [`app.config.ts`](../entrypoints/app-config.md).
 
 It takes a configuration object with settings for SolidStart, Vite, and Nitro.
 
-* * *
-
 ## Configuring Vite
 
 SolidStart supports most Vite options, including plugins via the `vite` option:
 
-```
+```tsx
 import { defineConfig } from "@solidjs/start/config";
 
 export default defineConfig({
-
-  vite: {
-
-    // vite options
-
-    plugins: [],
-
-  },
-
+	vite: {
+		// vite options
+		plugins: [],
+	},
 });
 ```
 The `vite` option can also be a function that can be customized for each Vinxi router.
@@ -33,32 +26,58 @@ In SolidStart, 3 routers are used:
 - `client` - for the client-side routing
 - `server-function` - server functions.
 
-```
+```tsx
 import { defineConfig } from "@solidjs/start/config";
 
 export default defineConfig({
-
-  vite({ router }) {
-
-    if (router === "server") {
-
-    } else if (router === "client") {
-
-    } else if (router === "server-function") {
-
-    }
-
-    return { plugins: [] };
-
-  },
-
+	vite({ router }) {
+		if (router === "server") {
+		} else if (router === "client") {
+		} else if (router === "server-function") {
+		}
+		return { plugins: [] };
+	},
 });
 ```
-* * *
+## Serialization
+
+SolidStart serializes server function payloads so they can move between server and client. You can configure the serializer mode to balance performance, payload size, and Content Security Policy (CSP) constraints.
+
+```tsx
+import { defineConfig } from "@solidjs/start/config";
+
+export default defineConfig({
+	serialization: {
+		mode: "json",
+	},
+});
+```
+### Modes
+
+- `json`: Uses `JSON.parse` on the client. This is the safest option for strict CSP because it avoids `eval`. Payloads can be slightly larger.
+- `js`: Uses Seroval's JS serializer for smaller payloads and better performance, but it relies on `eval` during client-side deserialization and requires `unsafe-eval` in CSP.
+
+### Defaults
+
+- SolidStart v1 defaults to `js` for backwards compatibility.
+- SolidStart v2 defaults to `json` for CSP compatibility.
+
+### Supported types (default)
+
+SolidStart enables Seroval plus a default set of web platform plugins. These plugins add support for:
+
+- `AbortSignal`, `CustomEvent`, `DOMException`, `Event`
+- `FormData`, `Headers`, `ReadableStream`
+- `Request`, `Response`
+- `URL`, `URLSearchParams`
+
+Seroval supports additional value types. The compatibility list is broader than what SolidStart enables by default, so treat it as a superset. See the full list in the [Seroval compatibility docs](https://github.com/lxsmnsyc/seroval/blob/main/docs/COMPATIBILITY.md).
 
 ## Configuring Nitro
 
-SolidStart uses [Nitro](https://nitro.build/) to run on a number of platforms. The `server` option exposes some Nitro options including the build and deployment presets. An overview of all available presets is available in the [Deploy section of the Nitro documentation](https://nitro.build/deploy).
+SolidStart uses [Nitro](https://nitro.build/) to run on a number of platforms.
+The `server` option exposes some Nitro options including the build and deployment presets.
+An overview of all available presets is available in the [Deploy section of the Nitro documentation](https://nitro.build/deploy).
 
 Some common ones include:
 
@@ -80,44 +99,35 @@ Some common ones include:
 
 - [Route pre-rendering](../../building-your-application/route-prerendering.md)
 
-By passing no arguments, the default will be the Node preset. Other presets may be automatically detected by the provider, however, if not, they must be added to the configuration within the `server-preset` option.
+By passing no arguments, the default will be the Node preset.
+Other presets may be automatically detected by the provider, however, if not, they must be added to the configuration within the `server-preset` option.
 
 For example, using Netlify Edge would look like the following:
 
-```
+```tsx
 import { defineConfig } from "@solidjs/start/config";
 
 export default defineConfig({
-
-  server: {
-
-    preset: "netlify_edge",
-
-  },
-
+	server: {
+		preset: "netlify_edge",
+	},
 });
 ```
 #### Special note
 
-SolidStart uses async local storage. Netlify, Vercel, and Deno support this out of the box but if you're using Cloudflare you will need to specify the following:
+SolidStart uses async local storage.
+Netlify, Vercel, and Deno support this out of the box but if you're using Cloudflare you will need to specify the following:
 
-```
+```js
 import { defineConfig } from "@solidjs/start/config";
 
 export default defineConfig({
-
-  server: {
-
-    preset: "cloudflare_module",
-
-    rollupConfig: {
-
-      external: ["__STATIC_CONTENT_MANIFEST", "node:async_hooks"],
-
-    },
-
-  },
-
+	server: {
+		preset: "cloudflare_module",
+		rollupConfig: {
+			external: ["__STATIC_CONTENT_MANIFEST", "node:async_hooks"],
+		},
+	},
 });
 ```
 Within `wrangler.toml` you will need to enable node compatibility:
@@ -125,8 +135,18 @@ Within `wrangler.toml` you will need to enable node compatibility:
 ```
 compatibility_flags = [ "nodejs_compat" ]
 ```
-* * *
-
 ## Parameters
 
-PropertyTypeDefaultDescriptionssrbooleantrueToggle between client and server rendering.solidobjectConfiguration object for [vite-plugin-solid](https://github.com/solidjs/vite-plugin-solid)extensionsstring\[]\["js", "jsx", "ts", "tsx"]Array of file extensions to be treated as routes.serverobjectNitro server config optionsappRootstring"./src"The path to the root of the application.routeDirstring"./routes"The path to where the routes are located.middlewarestringThe path to an optional [middleware](../../advanced/middleware.md) file.devOverlaybooleantrueToggle the dev overlay.experimental.islandsbooleanfalseEnable "islands" mode.vite`ViteConfig` or `({ router })=>ViteConfig`[Vite config object](https://vitejs.dev/config/shared-options.html). Can be configured for each `router` which has the string value "server", "client" or "server-function"\`
+| Property             | Type                                       | Default                    | Description                                                                                                                                                                  |
+| -------------------- | ------------------------------------------ | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ssr                  | boolean                                    | true                       | Toggle between client and server rendering.                                                                                                                                  |
+| solid                | object                                     |                            | Configuration object for [vite-plugin-solid](https://github.com/solidjs/vite-plugin-solid)                                                                                   |
+| extensions           | string[]                                   | ["js", "jsx", "ts", "tsx"] | Array of file extensions to be treated as routes.                                                                                                                            |
+| server               | object                                     |                            | Nitro server config options                                                                                                                                                  |
+| serialization        | object                                     |                            | Serialization settings for server function payloads.                                                                                                                         |
+| appRoot              | string                                     | "./src"                    | The path to the root of the application.                                                                                                                                     |
+| routeDir             | string                                     | "./routes"                 | The path to where the routes are located.                                                                                                                                    |
+| middleware           | string                                     |                            | The path to an optional [middleware](../../advanced/middleware.md) file.                                                                                                 |
+| devOverlay           | boolean                                    | true                       | Toggle the dev overlay.                                                                                                                                                      |
+| experimental.islands | boolean                                    | false                      | Enable "islands" mode.                                                                                                                                                       |
+| vite                 | `ViteConfig` or `({ router })=>ViteConfig` |                            | [Vite config object](https://vitejs.dev/config/shared-options.html). Can be configured for each `router` which has the string value "server", "client" or "server-function"` |

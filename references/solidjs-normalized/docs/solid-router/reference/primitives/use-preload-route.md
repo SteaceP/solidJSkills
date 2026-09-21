@@ -1,36 +1,36 @@
-# usePreloadRoute
+# Use Preload Route
 
-The `usePreloadRoute` function is a utility for manually preloading a route.
-
-* * *
+`usePreloadRoute` returns a function for manually preloading a route.
 
 ## Import
 
-```
+```ts
 import { usePreloadRoute } from "@solidjs/router";
 ```
-* * *
-
 ## Type
 
-```
-const usePreloadRoute: () => (
-
-  url: string | URL,
-
-  options?: { preloadData?: boolean }
-
+```ts
+function usePreloadRoute(): (
+	url: string | URL,
+	options?: { preloadData?: boolean }
 ) => void;
 ```
-* * *
-
 ## Parameters
+
+`usePreloadRoute` takes no arguments.
+
+## Return value
+
+- **Type:** `(url: string | URL, options?: { preloadData?: boolean }) => void`
+
+Returns a function that preloads the matching route for a URL.
 
 ### `url`
 
-**Type:** `string | URL` **Required:** Yes
+- **Type:** `string | URL`
+- **Required:** Yes
 
-The route path to preload. Accepts either a `string` path or a [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object.
+URL or URL string to preload.
 
 ### `options`
 
@@ -46,39 +46,27 @@ A configuration object with the following properties:
 
 When `true`, triggers the route's data loading in addition to preloading the route itself.
 
-* * *
-
 ## Return value
 
 None.
-
-* * *
 
 ## Examples
 
 ### Basic usage
 
-```
+```tsx
 import { usePreloadRoute } from "@solidjs/router";
 
 function SettingsButton() {
+	const preload = usePreloadRoute();
 
-  const preload = usePreloadRoute();
-
-  return (
-
-    <button onClick={() => preload("/users/settings", { preloadData: true })}>
-
-      Load settings
-
-    </button>
-
-  );
-
+	return (
+		<button onClick={() => preload("/users/settings", { preloadData: true })}>
+			Load settings
+		</button>
+	);
 }
 ```
-* * *
-
 ## Related
 
 - [`<A>`](../components/a.md)

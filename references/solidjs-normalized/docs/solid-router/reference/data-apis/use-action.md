@@ -1,29 +1,19 @@
-# useAction
+# Use Action
 
-The `useAction` primitive returns a function that triggers an [action](../../concepts/actions.md) when called.
-
-`useAction` requires client-side JavaScript and is not progressively enhanceable.
-
-* * *
+`useAction` returns a function that calls an [`action`](action.md) with the current router context. It is the programmatic caller for non-form submissions.
 
 ## Import
 
-```
+```tsx
 import { useAction } from "@solidjs/router";
 ```
-* * *
-
 ## Type
 
-```
+```tsx
 function useAction<T extends Array<any>, U, V>(
-
-  action: Action<T, U, V>
-
+	action: Action<T, U, V>
 ): (...args: Parameters<Action<T, U, V>>) => Promise<NarrowResponse<U>>;
 ```
-* * *
-
 ## Parameters
 
 ### `action`
@@ -31,32 +21,35 @@ function useAction<T extends Array<any>, U, V>(
 - **Type:** `Action<T, U, V>`
 - **Required:** Yes
 
-The action to be triggered.
-
-* * *
+[`Action`](action.md) to bind to the current router.
 
 ## Return value
 
-`useAction` returns a function that triggers the action. It takes the same parameters as the action handler and returns a [`Promise`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that resolves with the action's result.
+- **Type:** `(...args: Parameters<Action<T, U, V>>) => Promise<NarrowResponse<U>>`
 
-* * *
+Returns a router-bound caller with the same arguments as `action`.
 
-## Example
+## Behavior
 
-```
+- Unlike native form submissions, calls made with `useAction` depend on client-side JavaScript.
+
+## Examples
+
+### Basic usage
+
+```tsx
 import { action, useAction } from "@solidjs/router";
 
-const likePostAction = action(async (id: string) => {
+const likePost = action(async (id: string) => {
+	return id;
+}, "likePost");
 
-  // ... Likes a post on the server.
+function LikeButton(props: { id: string }) {
+	const like = useAction(likePost);
 
-});
-
-function LikeButton(props: { postId: string }) {
-
-  const likePost = useAction(likePostAction);
-
-  return <button onClick={() => likePost(props.postId)}>Like</button>;
-
+	return <button onClick={() => like(props.id)}>Like</button>;
 }
 ```
+## Related
+
+- [`action`](action.md)

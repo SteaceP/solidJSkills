@@ -1,29 +1,22 @@
-# children
+# Children
 
-`children` normalizes a component's `children` prop into a stable accessor that returns resolved JSX elements. It accepts functions, arrays, fragments, and nested structures.
-
-* * *
+`children` resolves a component's `children` prop and returns a stable accessor for the resolved result.
 
 ## Import
 
-```
+```ts
 import { children } from "solid-js";
 ```
-* * *
-
 ## Type
 
-```
-function children(fn: Accessor<JSX.Element>): ChildrenReturn;
+```ts
+type ResolvedJSXElement = Exclude<JSX.Element, JSX.ArrayElement>;
+type ResolvedChildren = ResolvedJSXElement | ResolvedJSXElement[];
 
-type ChildrenReturn = Accessor<ResolvedChildren> & {
-
-  toArray: () => ResolvedChildren[];
-
+function children(fn: Accessor<JSX.Element>): Accessor<ResolvedChildren> & {
+	toArray: () => ResolvedJSXElement[];
 };
 ```
-* * *
-
 ## Parameters
 
 ### `fn`
@@ -31,103 +24,65 @@ type ChildrenReturn = Accessor<ResolvedChildren> & {
 - **Type:** `() => JSX.Element`
 - **Required:** Yes
 
-An accessor that returns the `children` value (typically `props.children`).
-
-* * *
+Accessor that returns the component's `children` value.
 
 ## Return value
 
-- **Type:** `ChildrenReturn`
+- **Type:** `Accessor<ResolvedChildren> & { toArray: () => ResolvedJSXElement[] }`
 
-The function returns a callable accessor. Calling it yields the resolved children, either a single element or an array.
+Returns an accessor for the resolved children.
+The accessor also exposes `toArray()`.
 
-* * *
+## Behavior
 
-## Helpers
-
-### `toArray()`
-
-- **Type:** `() => ResolvedChildren[]`
-- **Description:** Returns a flattened array of resolved child elements.
-
-This method is exposed on the returned accessor and is useful for iteration or index-based logic.
-
-* * *
+- The returned accessor memoizes the resolved children, so repeated reads use the resolved result instead of recreating the child structure.
+- `children` resolves nested arrays, fragments, and zero-argument child accessors from `props.children`.
+- `toArray()` returns the resolved children as an array. It returns `[]` when the resolved value is `null` or `undefined`.
 
 ## Examples
 
 ### Basic usage
 
-```
+```tsx
 function Wrapper(props) {
+	const resolved = children(() => props.children);
 
-  const resolved = children(() => props.children);
-
-  return <div>{resolved()}</div>;
-
+	return <div>{resolved()}</div>;
 }
 
-// Usage
-
-<Wrapper>
-
-  <span>one</span>
-
-  <span>two</span>
-
-</Wrapper>;
+function Example() {
+	return (
+		<Wrapper>
+			<span>First</span>
+			<span>Second</span>
+		</Wrapper>
+	);
+}
 ```
-### `.toArray()` example
+### Flatten children into an array
 
-```
+```tsx
 function List(props) {
+	const resolved = children(() => props.children);
 
-  const resolved = children(() => props.children);
-
-  const items = resolved.toArray();
-
-  return (
-
-    <ul>
-
-      {items.map((child) => (
-
-        <li>{child}</li>
-
-      ))}
-
-    </ul>
-
-  );
-
+	return (
+		<ul>
+			{resolved.toArray().map((child) => (
+				<li>{child}</li>
+			))}
+		</ul>
+	);
 }
 
-// Usage
-
-<List>
-
-  <span>one</span>
-
-  <span>two</span>
-
-</List>;
-```
-`children` resolves the current value of `props.children`. If `props.children` is reactive, the resolved accessor reflects updates.
-
-### Working with function-as-children
-
-If `children` is a function, the helper evaluates it and returns its rendered result.
-
-```
-function Slot(props) {
-
-  const resolved = children(() => props.children);
-
-  return <div>{resolved()}</div>;
-
+function Example() {
+	return (
+		<List>
+			<span>Alpha</span>
+			<span>Beta</span>
+		</List>
+	);
 }
-
-// Usage
-
-<Slot>{() => <span>dynamic</span>}</Slot>;
 ```
+## Related
+
+- [Props](../../concepts/components/props.md)

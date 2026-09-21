@@ -1,5 +1,30 @@
-# textContent
+# Textcontent
 
-The `textContent` attribute is equivalent to the [`textContent` DOM property](https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent). This attribute replaces all existing child nodes of the element with a single text node containing the provided string.
+`textContent` sets an element's `textContent` property with plain text content.
 
-Using `textContent` can improve performance when the element's children are known to be exclusively text, as it bypasses the generic diffing process.
+## Syntax
+
+```tsx
+<div textContent={value} />
+```
+## Value
+
+- **Type:** `string | number`
+
+Text written to the element without parsing markup.
+
+## Behavior
+
+- `textContent` replaces the element's existing child content instead of merging with JSX children.
+- On the client, the value is written through the DOM `textContent` property. During SSR, it is emitted as escaped text instead of raw HTML.
+
+## Examples
+
+### Basic usage
+
+```tsx
+<div textContent={"<strong>Hello</strong>"} />
+```
+## Related
+
+- [`innerHTML`](innerhtml.md)

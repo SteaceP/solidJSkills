@@ -1,29 +1,20 @@
-# revalidate
+# Revalidate
 
-The `revalidate` function triggers revalidation of [queries](../../data-fetching/queries.md) by their keys. Each query with active subscribers re-executes and updates its dependents; queries without subscribers are marked stale but don't execute until subscribed.
-
-* * *
+`revalidate` retriggers [`query`](query.md) cache entries inside a transition.
 
 ## Import
 
-```
+```tsx
 import { revalidate } from "@solidjs/router";
 ```
-* * *
-
 ## Type
 
-```
+```tsx
 function revalidate(
-
-  key?: string | string[] | void,
-
-  force?: boolean
-
+	key?: string | string[] | void,
+	force?: boolean
 ): Promise<void>;
 ```
-* * *
-
 ## Parameters
 
 ### `key`
@@ -31,89 +22,90 @@ function revalidate(
 - **Type:** `string | string[] | void`
 - **Required:** No
 
-The query key or array of query keys to revalidate. If not provided, all queries on the current page are revalidated.
+Cache key or keys from a query function's [`key`](query.md#key) or [`keyFor`](query.md#keyfor) property.
 
 ### `force`
 
 - **Type:** `boolean`
-- **Required:** No
 - **Default:** `true`
+- **Required:** No
 
-When `true`, clears the internal cache used for deduplication. When `false`, allows cached data to be reused if available.
-
-* * *
+When `true`, matching cache entries are marked as cache misses before subscribers are retriggered.
+When `false`, subscribers are retriggered without changing cache entry timestamps.
 
 ## Return value
 
-`revalidate` returns a `Promise` that resolves when the revalidation transition completes.
+- **Type:** `Promise<void>`
 
-* * *
+Resolves when the revalidation transition completes.
+
+## Behavior
+
+- Runs inside [`startTransition`](../../../reference/reactive-utilities/start-transition.md).
+- When `key` is undefined, every cache entry matches.
+- A string or array `key` matches cache entries by key prefix. [`query.key`](query.md#key) targets every cached argument set for that query; [`query.keyFor(...)`](query.md#keyfor) targets one serialized argument list.
+- Matching cache entries update their live signal with the current timestamp, retriggering active cache reads through primitives such as [`createAsync`](create-async.md).
+- Without active subscribers, `revalidate` does not call the query function.
 
 ## Examples
 
 ### Basic usage
 
-```
-import { query, createAsync, revalidate } from "@solidjs/router";
+```tsx
+import { For } from "solid-js";
+import { createAsync, query, revalidate } from "@solidjs/router";
 
-const getUserQuery = query(async () => {
+const getTodos = query(async () => {
+	const response = await fetch("/api/todos");
+	return response.json() as Promise<{ id: string; title: string }[]>;
+}, "todos");
 
-  // ... Fetches user data.
+function Todos() {
+	const todos = createAsync(() => getTodos(), { initialValue: [] });
 
-  return { name: "John" };
+	function refreshTodos() {
+		void revalidate(getTodos.key);
+	}
 
-}, "user");
-
-function UserProfile() {
-
-  const user = createAsync(() => getUserQuery());
-
-  function refreshUser() {
-
-    revalidate(getUserQuery.key);
-
-  }
-
-  return (
-
-    <div>
-
-      <button onClick={refreshUser}>Refresh</button>
-
-      <p>{user()?.name}</p>
-
-    </div>
-
-  );
-
+	return (
+		<>
+			<button onClick={refreshTodos}>Refresh todos</button>
+			<ul>
+				<For each={todos()}>{(todo) => <li>{todo.title}</li>}</For>
+			</ul>
+		</>
+	);
 }
 ```
-### Revalidating multiple queries
+### Revalidate a query argument
 
-```
-import { query, revalidate } from "@solidjs/router";
+```tsx
+import { createAsync, query, revalidate } from "@solidjs/router";
 
-const getUsersQuery = query(async () => {
+const getProjectTasks = query(async (projectId: string) => {
+	const response = await fetch(`/api/projects/${projectId}/tasks`);
+	return response.json() as Promise<{ id: string; title: string }[]>;
+}, "projectTasks");
 
-  // ... Fetches users.
+function ProjectTasks(props: { projectId: string }) {
+	const tasks = createAsync(() => getProjectTasks(props.projectId), {
+		initialValue: [],
+	});
 
-}, "users");
+	function refreshProjectTasks() {
+		void revalidate(getProjectTasks.keyFor(props.projectId));
+	}
 
-const getPostsQuery = query(async () => {
-
-  // ... Fetches posts.
-
-}, "posts");
-
-function refreshAll() {
-
-  revalidate([getUsersQuery.key, getPostsQuery.key]);
-
+	return (
+		<>
+			<button onClick={refreshProjectTasks}>Refresh project tasks</button>
+			<div>{tasks().length} tasks</div>
+		</>
+	);
 }
 ```
-* * *
-
 ## Related
 
 - [`query`](query.md)
 - [`createAsync`](create-async.md)
+- [`reload`](../response-helpers/reload.md)

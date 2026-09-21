@@ -1,65 +1,46 @@
-# useIsRouting
+# Use Is Routing
 
-The `useIsRouting` function is a utility for detecting when the router is processing a route transition.
-
-* * *
+`useIsRouting` returns an accessor for whether a route transition is in progress.
 
 ## Import
 
-```
+```ts
 import { useIsRouting } from "@solidjs/router";
 ```
-* * *
-
 ## Type
 
+```ts
+function useIsRouting(): () => boolean;
 ```
-const useIsRouting: () => () => boolean;
-```
-* * *
-
 ## Parameters
 
-None.
-
-* * *
+`useIsRouting` takes no arguments.
 
 ## Return value
 
-**Type:** `() => boolean`
+- **Type:** `() => boolean`
 
-An accessor function that returns `true` during route transitions and `false` otherwise.
+Returns an accessor that reads the current route transition state.
 
-* * *
+## Behavior
+
+- The accessor becomes `true` when a transition target starts and `false` after the active transition finishes.
 
 ## Examples
 
-### Route transition indicator
+### Basic usage
 
-```
+```tsx
+import { Show } from "solid-js";
 import { useIsRouting } from "@solidjs/router";
 
-function App() {
+function PendingRoute() {
+	const isRouting = useIsRouting();
 
-  const isRouting = useIsRouting();
-
-  return (
-
-    <>
-
-      {isRouting() && <div class="loading-bar" />}
-
-      <MyContent />
-
-    </>
-
-  );
-
+	return <Show when={isRouting()}>Loading route...</Show>;
 }
 ```
-* * *
-
 ## Related
 
-- [`<Router>`](../components/router.md)
+- [`Router`](../components/router.md)
 - [`useNavigate`](use-navigate.md)

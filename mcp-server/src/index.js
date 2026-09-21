@@ -256,7 +256,6 @@ server.registerTool(
           .min(1)
           .describe('Repository path, corpus path, or doc_id (e.g. solid-core.reference.basic-reactivity.create-signal)')
       })
-      .shape
   },
   async ({ path: documentPath }) => {
     const fullPath = await resolveDocPath(documentPath);
@@ -283,7 +282,6 @@ server.registerTool(
       .object({
         query: z.string().min(1).describe('Search query, symbol, topic, or path')
       })
-      .shape
   },
   async ({ query }) => {
     const queryTrimmed = query.trim();
@@ -416,7 +414,6 @@ server.registerTool(
         topic: z.string().optional().describe('Optional topic filter (exact match).'),
         limit: z.number().int().min(1).max(500).default(100).describe('Maximum records to return.')
       })
-      .shape
   },
   async ({ package: packageName, topic, limit = 100 }) => {
     const manifest = await loadManifest();
@@ -444,7 +441,6 @@ server.registerTool(
         doc_id: z.string().min(1).describe('Document identifier from manifest.jsonl.'),
         source: z.enum(['normalized', 'raw']).default('normalized').describe('Which source body to return.')
       })
-      .shape
   },
   async ({ doc_id: docId, source = 'normalized' }) => {
     const manifest = await loadManifest();
@@ -496,7 +492,6 @@ server.registerTool(
         topic: z.string().optional().describe('Optional topic filter.'),
         limit: z.number().int().min(1).max(100).default(20)
       })
-      .shape
   },
   async ({ query, package: packageName, topic, limit = 20 }) => {
     const queryLower = query.toLowerCase();
@@ -531,7 +526,6 @@ server.registerTool(
         symbol: z.string().min(1).describe('API symbol, e.g. createSignal, useNavigate, StartServer'),
         limit: z.number().int().min(1).max(50).default(10)
       })
-      .shape
   },
   async ({ symbol, limit = 10 }) => {
     const queryLower = symbol.toLowerCase();

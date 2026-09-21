@@ -1,67 +1,69 @@
-# clientOnly
+# Client Only
 
-The `clientOnly` function allows components or pages to render exclusively on the client side, bypassing server-side rendering (*SSR*). This is useful for code that relies on the browser-specific APIs, such as `window` or `document`.
+`clientOnly` wraps an async component import and returns a component that renders its fallback on the server.
 
-* * *
+## Import
 
-## How to Use `clientOnly` in Components
-
-1. **Isolate Client-Only Logic**: Create a separate file for the component that depends on browser-specific features, such as DOM or browser APIs.
-   
-   ```
-   export default function ClientOnlyComponent() {
-   
-     const location = document.location.href;
-   
-     return <div>Current URL: {location}</div>;
-   
-   }
-   ```
-2. **Import with `clientOnly`** : Use `clientOnly` to dynamically import the isolated component in your parent component or page.
-   
-   ```
-   import { clientOnly } from "@solidjs/start";
-   
-   
-   
-   
-   const ClientOnlyComp = clientOnly(() => import("./ClientOnlyComponent"));
-   
-   
-   
-   
-   export default function IsomorphicComponent() {
-   
-     return <ClientOnlyComp />;
-   
-   }
-   ```
-3. **Add a Fallback (Optional)**: Provide a `fallback` prop to display content while the client-only component is loading.
-   
-   ```
-   <ClientOnlyComp fallback={<div>Loading...</div>} />
-   ```
-* * *
-
-## Disabling SSR for Entire Pages
-
-To disable SSR for an entire page, apply `clientOnly` at the page level. This ensures the page renders only on the client.
-
-```
+```tsx
 import { clientOnly } from "@solidjs/start";
-
-export default clientOnly(async () => ({ default: Page }), { lazy: true });
-
-function Page() {
-
-  // This code runs only on the client
-
-  return <div>Client-only page content</div>;
-
-}
 ```
-* * *
+## Type
 
+```tsx
+function clientOnly<T extends Component<any>>(
+	fn: () => Promise<{ default: T }>,
+	options?: { lazy?: boolean }
+): (props: ComponentProps<T> & { fallback?: JSX.Element }) => any;
+```
 ## Parameters
 
-ArgumentTypeDescription`fn``() => Promise<{ default: () => JSX.Element }>`A function that dynamically imports a component to be rendered only on the client side.`options``{ lazy?: boolean }`An optional object to configure loading behavior. Set `lazy: false` for eager loading`props``Record<string, any> & { fallback?: JSX.Element }`Props passed to the component, including an optional `fallback` for rendering while the component loads.
+### `fn`
+
+- **Type:** `() => Promise<{ default: T }>`
+- **Required:** Yes
+
+Function that imports the client component.
+
+### `options`
+
+- **Type:** `{ lazy?: boolean }`
+- **Default:** `{}`
+- **Required:** No
+
+Loading options with the following properties:
+
+### `lazy`
+
+- **Type:** `boolean`
+- **Required:** No
+
+Controls whether the component import is loaded from inside the returned component.
+
+## Return value
+
+- **Type:** `(props: ComponentProps<T> & { fallback?: JSX.Element }) => any`
+
+Returns a component for the imported default export.
+
+## Behavior
+
+- On the server, the returned component renders `props.fallback`.
+- Client rendering loads `fn` immediately unless `options.lazy` is truthy.
+- `fallback` is split from the remaining props before the loaded component renders.
+- During hydration, rendering waits until mount.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { clientOnly } from "@solidjs/start";
+
+const Map = clientOnly(() => import("./Map"), {
+	lazy: true,
+});
+
+export default function Page() {
+	return <Map fallback={<p>Loading map...</p>} />;
+}
+```

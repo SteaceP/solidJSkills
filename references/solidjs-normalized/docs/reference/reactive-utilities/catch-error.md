@@ -1,10 +1,73 @@
-# catchError
+# Catch Error
 
-New in v1.7.0
+`catchError` establishes an error boundary for work performed inside the provided function.
 
+## Import
+
+```ts
+import { catchError } from "solid-js";
 ```
-import { catchError } from "solid-js"
+## Type
 
-function catchError<T>(tryFn: () => T, onError: (err: any) => void): T
+```ts
+function catchError<T>(
+	fn: () => T,
+	handler: (err: Error) => void
+): T | undefined;
 ```
-Wraps a `tryFn` with an error handler that fires if an error occurs below that point. Only the nearest scope error handlers execute. Rethrow to trigger up the line.
+## Parameters
+
+### `fn`
+
+- **Type:** `() => T`
+- **Required:** Yes
+
+Function executed inside the error boundary.
+
+### `handler`
+
+- **Type:** `(err: Error) => void`
+- **Required:** Yes
+
+Error handler invoked when a thrown value reaches this boundary.
+
+## Return value
+
+- **Type:** `T | undefined`
+
+Returns the value produced by `fn`, or `undefined` when a thrown value is caught and handled.
+
+## Behavior
+
+- While `fn` runs, `catchError` establishes an error boundary for reactive scopes created inside it.
+- Only the nearest matching error boundary handles a thrown error.
+- If `handler` throws, the next parent error boundary handles that error.
+
+## Examples
+
+### Handle an error in a child scope
+
+```tsx
+import { catchError, createEffect, createSignal } from "solid-js";
+
+function Example() {
+	const [count, setCount] = createSignal(0);
+
+	catchError(
+		() => {
+			createEffect(() => {
+				if (count() > 2) throw new Error("count too large");
+			});
+		},
+		(err) => {
+			console.error(err.message);
+		}
+	);
+
+	return <button onClick={() => setCount((c) => c + 1)}>Increment</button>;
+}
+```
+## Related
+
+- [`ErrorBoundary`](../components/error-boundary.md)
+- [`createEffect`](../basic-reactivity/create-effect.md)

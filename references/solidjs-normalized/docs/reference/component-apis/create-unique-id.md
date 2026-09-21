@@ -1,57 +1,61 @@
-# createUniqueId
+# Create Unique Id
 
-The `createUniqueId` function generates a unique ID that remains consistent across both server and client renders. It is commonly used with HTML `id` and `for` attributes to ensure stable hydration.
+`createUniqueId` generates a unique string for the current render or hydration context.
+During hydration, matching server and client call order produces matching IDs.
 
-`createUniqueId` does *not* generate a cryptographically secure ID and is not suitable for security-sensitive data. Additionally, it should not be used in scenarios that require uniqueness across a distributed system.
+`createUniqueId` does _not_ generate a cryptographically secure ID and is not suitable for security-sensitive data.
+Additionally, it should not be used in scenarios that require uniqueness across a distributed system.
 
-`createUniqueId` relies on a counter-based mechanism to generate IDs. It must be called the same number of times on both the server and client.
+:::note
+`createUniqueId` relies on a counter-based mechanism to generate IDs.
+It must be called the same number of times on both the server and client.
 
 Calling `createUniqueId` only on the server or only on the client, such as when using [`isServer`](../rendering/is-server.md) or [`<NoHydration>`](../components/no-hydration.md), may lead to hydration errors.
-
-* * *
+:::
 
 ## Import
 
-```
+```ts
 import { createUniqueId } from "solid-js";
 ```
-* * *
-
 ## Type
 
-```
+```ts
 function createUniqueId(): string;
 ```
-* * *
-
 ## Parameters
 
 This function does not take any parameters.
-
-* * *
 
 ## Returns
 
 `createUniqueId` returns a unique `string` that is stable across server and client renders.
 
-* * *
+## Behavior
+
+- During hydration, IDs come from the current hydration context, so matching call order produces matching server and client IDs.
+- Outside hydration context, client-side IDs use a local counter and are unique only within the current Solid runtime instance.
 
 ## Examples
 
 ### Basic Usage
 
-```
+```tsx
 import { createUniqueId } from "solid-js";
 
 type InputProps = {
-
-  id?: string;
-
+	id?: string;
+	label: string;
 };
 
 function Input(props: InputProps) {
+	const inputId = props.id ?? createUniqueId();
 
-  return <input id={props.id ?? createUniqueId()} />;
-
+	return (
+		<>
+			<label for={inputId}>{props.label}</label>
+			<input id={inputId} />
+		</>
+	);
 }
 ```

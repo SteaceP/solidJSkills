@@ -176,19 +176,32 @@ async function runTests() {
             errors.push('list_docs: expected skill content in result');
         }
 
-        // 8. Call search_docs with camelCase API symbol (createSignal)
+        // 8. Call search_docs (substring)
         const searchDocsId = reqId++;
         sendJsonRpc(serverProc, 'tools/call', {
             name: 'search_docs',
-            arguments: { query: 'createSignal' }
+            arguments: { query: 'component-builder' }
         }, searchDocsId);
         const searchDocsResp = await waitForResponse(serverProc, searchDocsId);
         const searchDocsText = searchDocsResp.result?.content?.[0]?.text || '';
-        if (!searchDocsText.includes('create-signal')) {
+        const expectedSearchPath = 'skills/solid-component-builder/SKILL.md';
+        if (!searchDocsText.includes(expectedSearchPath) && !searchDocsText.includes(path.join('skills', 'solid-component-builder', 'SKILL.md'))) {
+            errors.push(`search_docs: expected "${expectedSearchPath}" in search results`);
+        }
+
+        // 9. Call search_docs with camelCase API symbol (createSignal)
+        const searchDocsSymbolId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'search_docs',
+            arguments: { query: 'createSignal' }
+        }, searchDocsSymbolId);
+        const searchDocsSymbolResp = await waitForResponse(serverProc, searchDocsSymbolId);
+        const searchDocsSymbolText = searchDocsSymbolResp.result?.content?.[0]?.text || '';
+        if (!searchDocsSymbolText.includes('create-signal')) {
             errors.push('search_docs: "createSignal" did not match create-signal doc');
         }
 
-        // 9. Call search_docs with space-separated topic (state management)
+        // 10. Call search_docs with space-separated topic (state management)
         const searchDocsTopicId = reqId++;
         sendJsonRpc(serverProc, 'tools/call', {
             name: 'search_docs',
@@ -200,7 +213,20 @@ async function runTests() {
             errors.push('search_docs: "state management" did not match state-management guide');
         }
 
-        // 10. Call read_doc with corpus relative path (reference/basic-reactivity/create-signal.md)
+        // 11. Call read_doc (success)
+        const readDocId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'read_doc',
+            arguments: { path: 'skills/solid-component-builder/SKILL.md' }
+        }, readDocId);
+        const readDocResp = await waitForResponse(serverProc, readDocId);
+        const readDocText = readDocResp.result?.content?.[0]?.text || '';
+        const expectedHeader = `# ${path.join('skills', 'solid-component-builder', 'SKILL.md')}`;
+        if (!readDocText.includes(expectedHeader) || !readDocText.includes('SolidJS')) {
+            errors.push('read_doc: expected valid SKILL.md content');
+        }
+
+        // 12. Call read_doc with corpus relative path (reference/basic-reactivity/create-signal.md)
         const readDocCorpusId = reqId++;
         sendJsonRpc(serverProc, 'tools/call', {
             name: 'read_doc',
@@ -212,28 +238,91 @@ async function runTests() {
             errors.push('read_doc: failed to read document via corpus-relative path');
         }
 
-        // 11. Call read_doc with doc_id
-        const readDocId = reqId++;
+        // 13. Call read_doc with doc_id
+        const readDocId2 = reqId++;
         sendJsonRpc(serverProc, 'tools/call', {
             name: 'read_doc',
             arguments: { path: 'solid-core.reference.basic-reactivity.create-signal' }
-        }, readDocId);
-        const readDocResp = await waitForResponse(serverProc, readDocId);
-        const readDocText = readDocResp.result?.content?.[0]?.text || '';
-        if (!readDocText.includes('createSignal')) {
+        }, readDocId2);
+        const readDocResp2 = await waitForResponse(serverProc, readDocId2);
+        const readDocText2 = readDocResp2.result?.content?.[0]?.text || '';
+        if (!readDocText2.includes('createSignal')) {
             errors.push('read_doc: failed to read document via doc_id');
         }
 
-        // 12. Call read_corpus_doc with raw source (should gracefully fall back without throwing)
-        const readRawId = reqId++;
+        // 14. Call read_doc (error - not allowed directory)
+        const readDocErrId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'read_doc',
+            arguments: { path: 'package.json' }
+        }, readDocErrId);
+        const readDocErrResp = await waitForResponse(serverProc, readDocErrId);
+        const isErrorResponse = readDocErrResp.result?.isError || readDocErrResp.error;
+        const errText = readDocErrResp.result?.content?.[0]?.text || readDocErrResp.error?.message || '';
+        if (!isErrorResponse || !errText.includes('Path must be inside one of')) {
+            errors.push(`read_doc (error): expected validation error for package.json, got: ${JSON.stringify(readDocErrResp)}`);
+        }
+
+        // 15. Call list_corpus_docs (with filters)
+        const listCorpusFilteredId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'list_corpus_docs',
+            arguments: { package: 'solid-core', limit: 3 }
+        }, listCorpusFilteredId);
+        const listCorpusFilteredResp = await waitForResponse(serverProc, listCorpusFilteredId);
+        const listCorpusFilteredText = listCorpusFilteredResp.result?.content?.[0]?.text || '';
+        let listCorpusFilteredParsed;
+        try {
+            listCorpusFilteredParsed = JSON.parse(listCorpusFilteredText);
+        } catch {
+            errors.push('list_corpus_docs (filtered): could not parse response as JSON');
+            listCorpusFilteredParsed = [];
+        }
+        if (!Array.isArray(listCorpusFilteredParsed) || listCorpusFilteredParsed.length === 0) {
+            errors.push('list_corpus_docs (filtered): expected non-empty array');
+        } else {
+            for (const entry of listCorpusFilteredParsed) {
+                if (entry.package !== 'solid-core') {
+                    errors.push(`list_corpus_docs (filtered): expected package "solid-core", got "${entry.package}"`);
+                }
+            }
+        }
+
+        // 16. Call read_corpus_doc (raw source)
+        if (sampleDocId) {
+            const readCorpusRawId = reqId++;
+            sendJsonRpc(serverProc, 'tools/call', {
+                name: 'read_corpus_doc',
+                arguments: { doc_id: sampleDocId, source: 'raw' }
+            }, readCorpusRawId);
+            const readCorpusRawResp = await waitForResponse(serverProc, readCorpusRawId);
+            const readCorpusRawText = readCorpusRawResp.result?.content?.[0]?.text || '';
+            let rawParsed;
+            try {
+                rawParsed = JSON.parse(readCorpusRawText);
+            } catch {
+                errors.push('read_corpus_doc (raw): could not parse response as JSON');
+            }
+            if (rawParsed) {
+                if (rawParsed.source !== 'raw') {
+                    errors.push(`read_corpus_doc (raw): expected source "raw", got "${rawParsed.source}"`);
+                }
+                if (!rawParsed.body || rawParsed.body.length < 10) {
+                    errors.push('read_corpus_doc (raw): body is empty or too short');
+                }
+            }
+        }
+
+        // 17. Call read_corpus_doc (non-existent doc_id)
+        const readCorpusMissingId = reqId++;
         sendJsonRpc(serverProc, 'tools/call', {
             name: 'read_corpus_doc',
-            arguments: { doc_id: 'solid-core.reference.basic-reactivity.create-signal', source: 'raw' }
-        }, readRawId);
-        const readRawResp = await waitForResponse(serverProc, readRawId);
-        const readRawText = readRawResp.result?.content?.[0]?.text || '';
-        if (!readRawText.includes('createSignal')) {
-            errors.push('read_corpus_doc: raw fallback failed to return content');
+            arguments: { doc_id: 'non-existent-doc-id-12345' }
+        }, readCorpusMissingId);
+        const readCorpusMissingResp = await waitForResponse(serverProc, readCorpusMissingId);
+        const readCorpusMissingText = readCorpusMissingResp.result?.content?.[0]?.text || '';
+        if (!readCorpusMissingText.includes("No corpus document found for doc_id")) {
+            errors.push(`read_corpus_doc (missing): expected missing document message, got: ${readCorpusMissingText}`);
         }
 
     } finally {
@@ -249,7 +338,7 @@ async function runTests() {
         return;
     }
 
-    console.log('MCP integration tests passed (12 checks).');
+    console.log('MCP integration tests passed (17 checks).');
 }
 
 runTests().catch((err) => {

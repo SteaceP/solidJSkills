@@ -1,27 +1,19 @@
-# Client setup
+# Client Setup
 
-You can inject a tag into the `<head />` by rendering one of the head tag components when necessary. No special requirements are needed on the client side.
+You can inject a tag into the `<head />` by rendering one of the head tag components when necessary.
+No special requirements are needed on the client side.
 
-```
+```js
 import { MetaProvider, Title, Link, Meta } from "@solidjs/meta";
 
 const App = () => (
-
-  <MetaProvider>
-
-    <div class="Home">
-
-      <Title>Title of page</Title>
-
-      <Link rel="canonical" href="http://solidjs.com/" />
-
-      <Meta name="example" content="whatever" />
-
-      // ...
-
-    </div>
-
-  </MetaProvider>
-
+	<MetaProvider>
+		<div class="Home">
+			<Title>Title of page</Title>
+			<Link rel="canonical" href="http://solidjs.com/" />
+			<Meta name="example" content="whatever" />
+			// ...
+		</div>
+	</MetaProvider>
 );
 ```

@@ -1,4 +1,4 @@
-# Preload data
+# Preload Data
 
 Preloading data improves perceived performance by fetching the data for an upcoming page before the user navigates to it.
 
@@ -9,57 +9,43 @@ Solid Router initiates preloading in two scenarios:
 
 This ensures data fetching starts as early as possible, often making data ready once the component renders.
 
-Preloading is configured using the [`preload`](../../reference/preload-functions/preload.md) prop on a [`Route`](../../reference/components/route.md). This prop accepts a function that calls one or more queries. When triggered, the queries execute and their results are stored in a short-lived internal cache. Once the user navigates and the destination route’s component renders, any `createAsync` calls within the page will consume the preloaded data. Thanks to the [deduplication mechanism](preload-data.md#deduplication), no redundant network requests are made.
+Preloading is configured using the [`preload`](../../reference/preload-functions/preload.md) prop on a [`Route`](../../reference/components/route.md).
+This prop accepts a function that calls one or more queries.
+When triggered, the queries execute and their results are stored in a short-lived internal cache.
+Once the user navigates and the destination route’s component renders, any `createAsync` calls within the page will consume the preloaded data.
+Thanks to the [deduplication mechanism](#deduplication), no redundant network requests are made.
 
-```
+```tsx {18-20,27}
 import { Show } from "solid-js";
-
 import { Route, query, createAsync } from "@solidjs/router";
 
 const getProductQuery = query(async (id: string) => {
-
-  // ... Fetches product details for the given ID.
-
+	// ... Fetches product details for the given ID.
 }, "product");
 
 function ProductDetails(props) {
+	const product = createAsync(() => getProductQuery(props.params.id));
 
-  const product = createAsync(() => getProductQuery(props.params.id));
-
-  return (
-
-    <Show when={product()}>
-
-      <h1>{product().name}</h1>
-
-    </Show>
-
-  );
-
+	return (
+		<Show when={product()}>
+			<h1>{product().name}</h1>
+		</Show>
+	);
 }
 
 function preloadProduct({ params }: { params: { id: string } }) {
-
-  getProductQuery(params.id);
-
+	getProductQuery(params.id);
 }
 
 function Routes() {
-
-  return (
-
-    <Route
-
-      path="/products/:id"
-
-      component={ProductDetails}
-
-      preload={preloadProduct}
-
-    />
-
-  );
-
+	return (
+		<Route
+			path="/products/:id"
+			component={ProductDetails}
+			preload={preloadProduct}
+		/>
+	);
 }
 ```
-In this example, hovering a link to `/products/:id` triggers `preloadProduct`. When the `ProductDetails` component renders, its `createAsync` call will instantly resolve with the preloaded data.
+In this example, hovering a link to `/products/:id` triggers `preloadProduct`.
+When the `ProductDetails` component renders, its `createAsync` call will instantly resolve with the preloaded data.

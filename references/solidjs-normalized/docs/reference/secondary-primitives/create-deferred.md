@@ -1,28 +1,92 @@
-# createDeferred
+# Create Deferred
 
+`createDeferred` returns a deferred accessor for a source accessor.
+
+## Import
+
+```ts
+import { createDeferred } from "solid-js";
 ```
-import { createDeferred } from "solid-js"
+## Type
+
+```ts
+type Accessor<T> = () => T;
 
 function createDeferred<T>(
-
-  source: () => T,
-
-  options?: {
-
-    timeoutMs?: number
-
-    equals?: false | ((prev: T, next: T) => boolean)
-
-    name?: string
-
-  }
-
-): () => T
+	source: Accessor<T>,
+	options?: {
+		timeoutMs?: number;
+		equals?: false | ((prev: T, next: T) => boolean);
+		name?: string;
+	}
+): Accessor<T>;
 ```
-Creates a readonly that only notifies downstream changes when the browser is idle. `timeoutMs` is the maximum time to wait before forcing the update.
+## Parameters
 
-* * *
+### `source`
 
-## Options
+- **Type:** `Accessor<T>`
+- **Required:** Yes
 
-NameTypeDescriptiontimeoutMs`number`The maximum time to wait before forcing the update.equals`false or ((prev: T, next: T) => boolean)`A function that returns true if the value has changed.name`string`The name of the readonly.
+Accessor used as the deferred source.
+
+### `options`
+
+#### `timeoutMs`
+
+- **Type:** `number`
+
+Maximum delay before the deferred value is updated.
+
+#### `equals`
+
+- **Type:** `false | ((prev: T, next: T) => boolean)`
+
+Comparison function used to determine whether the deferred accessor should notify dependents.
+
+#### `name`
+
+- **Type:** `string`
+
+Debug name used by development tooling.
+
+## Return value
+
+- **Type:** `Accessor<T>`
+
+Returns an accessor that exposes the deferred value.
+
+## Behavior
+
+- The deferred accessor initially reflects the current source value.
+- Later updates are deferred through Solid's scheduler until later execution or until `timeoutMs` is reached, so the returned accessor can lag behind the source accessor.
+- `equals` controls whether downstream dependents are notified for a new value.
+- `createDeferred` defers propagation of the accessor value. It does not debounce writes to the source accessor.
+- On the server, `createDeferred` returns the source accessor unchanged.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { createDeferred, createSignal } from "solid-js";
+
+function Example() {
+	const [value, setValue] = createSignal("");
+	const deferredValue = createDeferred(value);
+
+	return (
+		<>
+			<input
+				value={value()}
+				onInput={(event) => setValue(event.currentTarget.value)}
+			/>
+			<div>{deferredValue()}</div>
+		</>
+	);
+}
+```
+## Related
+
+- [`createMemo`](../basic-reactivity/create-memo.md)
+- [`startTransition`](../reactive-utilities/start-transition.md)

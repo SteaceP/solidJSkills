@@ -1,16 +1,59 @@
-# mount
+# Mount
 
-`mount` is a method that calls either [`hydrate`](../../../reference/rendering/hydrate.md) (server rendering) or [`render`](../../../reference/rendering/render.md) (client rendering) depending on the configuration. It is used in [`entry-client.tsx`](../entrypoints/entry-client.md) to bootstrap an application.
+`mount` hydrates a client entry and includes island hydration handling.
 
+## Import
+
+```tsx
+import { mount } from "@solidjs/start/client";
 ```
+## Type
+
+```tsx
+function mount(
+	fn: () => JSX.Element,
+	el: MountableElement
+): (() => void) | undefined;
+```
+## Parameters
+
+### `fn`
+
+- **Type:** `() => JSX.Element`
+- **Required:** Yes
+
+Function that returns the client app element.
+
+### `el`
+
+- **Type:** `MountableElement`
+- **Required:** Yes
+
+Element used as the hydration root.
+
+## Return value
+
+- **Type:** `(() => void) | undefined`
+
+Returns the value from [`hydrate`](../../../reference/rendering/hydrate.md) for non-island builds. In island builds, it returns `undefined`.
+
+## Behavior
+
+- In non-island builds, [`hydrate`](../../../reference/rendering/hydrate.md) is called with `fn` and `el`.
+- Island builds hydrate `solid-island[data-hk]` elements and do not call `hydrate(fn, el)`.
+- CSS links listed in `data-css` are loaded when a matching `link[href]` is not already present.
+- Islands with `data-when="idle"` hydrate through `requestIdleCallback` when it exists.
+
+## Examples
+
+### Basic usage
+
+```tsx
 import { mount, StartClient } from "@solidjs/start/client";
 
 mount(() => <StartClient />, document.getElementById("app")!);
 ```
-If you set `{ ssr: false }` in the [`defineConfig`](../config/define-config.md), effectively deactivating hydration, then `mount` becomes the same as [`render`](../../../reference/rendering/render.md).
+## Related
 
-* * *
-
-## Parameters
-
-Proptypedescriptionfn() =&gt; JSX.ElementFunction that returns the application code.elMountableElementDOM Element to mount the application to
+- [`hydrate`](../../../reference/rendering/hydrate.md)
+- [`StartClient`](start-client.md)

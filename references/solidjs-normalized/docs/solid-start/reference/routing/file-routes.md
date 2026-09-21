@@ -1,32 +1,46 @@
-# FileRoutes
+# File Routes
 
-`FileRoutes` is a component that creates a [`Route`](../../../solid-router/reference/components/route.md) for each file in the `/src/routes` directory. This creates a `route` export to define the route configuration for the router of your choice.
+`FileRoutes` is a component-like function that returns route definitions generated from filesystem routes.
 
-For example, using [`solid-router`](../../../solid-router) would look like the following:
+## Import
 
+```tsx
+import { FileRoutes } from "@solidjs/start/router";
 ```
-import { Suspense } from "solid-js";
+## Type
 
+```tsx
+const FileRoutes: () => any[];
+```
+## Parameters
+
+`FileRoutes` takes no arguments.
+
+## Return value
+
+- **Type:** `any[]`
+
+Returns generated route definitions.
+
+## Behavior
+
+- On the server, `FileRoutes` returns `getRequestEvent().routes`.
+- Client routes are created from the generated page route config and cached in module scope.
+- Generated route info includes `filesystem: true`.
+
+## Examples
+
+### Basic usage
+
+```tsx
 import { Router } from "@solidjs/router";
-
 import { FileRoutes } from "@solidjs/start/router";
 
 export default function App() {
-
-  return (
-
-    <Router root={(props) => <Suspense>{props.children}</Suspense>}>
-
-      <FileRoutes />
-
-    </Router>
-
-  );
-
+	return (
+		<Router>
+			<FileRoutes />
+		</Router>
+	);
 }
 ```
-See the [SolidStart routing guide](../../building-your-application/routing.md) for more details.
-
-If removing the `FileRoutes` component from your `app.tsx` file, you will need to manually add all of your routes.
-
-While this is possible it does come with tradeoffs. For example, optimizations such as preloaded script tags will no longer be available.

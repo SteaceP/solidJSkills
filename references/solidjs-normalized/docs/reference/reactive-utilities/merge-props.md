@@ -1,24 +1,56 @@
-# mergeProps
+# Merge Props
 
+`mergeProps` merges prop sources from left to right and resolves reads from the last source that defines each property.
+
+## Import
+
+```ts
+import { mergeProps } from "solid-js";
 ```
-import { mergeProps } from "solid-js"
+## Type
 
-function mergeProps(...sources: any): any
+```ts
+function mergeProps<T extends unknown[]>(...sources: T): MergeProps<T>;
 ```
-A reactive object **merge** method. Useful for setting default props for components in case caller doesn't provide them. Or cloning the props object including reactive properties.
+## Parameters
 
-This method works by using a proxy and resolving properties in reverse order. This allows for dynamic tracking of properties that aren't present when the prop object is first merged.
+### `sources`
 
+- **Type:** `unknown[]`
+
+Prop sources to merge.
+
+## Return value
+
+- **Type:** `MergeProps<T>`
+
+Returns a merged object with lazy reactive property resolution across the provided sources.
+
+## Behavior
+
+- `mergeProps` is shallow.
+- The last source with a non-`undefined` value for a property wins.
+- Function sources are wrapped so property reads stay reactive.
+- When reactive proxies are involved, the merged result uses proxy-backed property resolution.
+- Property lookups are resolved when read rather than copied eagerly from every source.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { mergeProps } from "solid-js";
+
+function Greeting(props) {
+	const merged = mergeProps({ greeting: "Hello", name: "Smith" }, props);
+
+	return (
+		<div>
+			{merged.greeting} {merged.name}
+		</div>
+	);
+}
 ```
-// default props
+## Related
 
-props = mergeProps({ name: "Smith" }, props)
-
-// clone props
-
-newProps = mergeProps(props)
-
-// merge props
-
-props = mergeProps(props, otherProps)
-```
+- [`splitProps`](split-props.md)

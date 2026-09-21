@@ -1,12 +1,63 @@
-# StartServer
+# Start Server
 
-`StartServer` takes a function returning a document component and converts it to a static document which can be used in [`createHandler`](create-handler.md) to bootstrap the server.
+`StartServer` is a component that renders the generated app inside the provided document component.
 
-```
+## Import
+
+```tsx
 import { StartServer } from "@solidjs/start/server";
 ```
-* * *
+## Type
 
-## Parameters
+```tsx
+type DocumentComponentProps = {
+	assets: JSX.Element;
+	scripts: JSX.Element;
+	children?: JSX.Element;
+};
 
-PropertyTypeDescriptiondocumentFunctionA function that returns the static document for your application.
+function StartServer(props: {
+	document: Component<DocumentComponentProps>;
+}): JSX.Element;
+```
+## Props
+
+### `document`
+
+- **Type:** `Component<DocumentComponentProps>`
+- **Optional:** No
+
+Document component rendered around the app.
+
+## Behavior
+
+- Reads the current request event as a `PageEvent`.
+- Registers page assets with `useAssets`.
+- Renders `<!DOCTYPE html>` before the document component.
+- Passes `assets`, `scripts`, and `children` to the document component.
+- Wraps the app with error boundaries.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { createHandler, StartServer } from "@solidjs/start/server";
+
+function Document(props) {
+	return (
+		<html>
+			<head>{props.assets}</head>
+			<body>
+				<div id="app">{props.children}</div>
+				{props.scripts}
+			</body>
+		</html>
+	);
+}
+
+export default createHandler((event) => <StartServer document={Document} />);
+```
+## Related
+
+- [`createHandler`](create-handler.md)

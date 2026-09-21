@@ -1,40 +1,83 @@
-# onCleanup
+# On Cleanup
 
-`onCleanup` registers a cleanup method that executes on disposal and recalculation of the current tracking scope. Can be used anywhere to clean up any side effects left behind by initialization.
+`onCleanup` registers a cleanup function on the current reactive scope.
+The cleanup runs when that scope is disposed or refreshed.
 
-When used in a Component, it runs when the component is unmounted. When used in tracking scope, such [`createEffect`](../basic-reactivity/create-effect.md), [`createMemo`](../basic-reactivity/create-memo.md) or a [`createRoot`](../reactive-utilities/create-root.md), it runs when the tracking scope is disposed or refreshed.
+## Import
 
+```ts
+import { onCleanup } from "solid-js";
 ```
-import { onCleanup } from "solid-js"
+## Type
 
-function onCleanup(fn: () => void): void;
+```ts
+function onCleanup<T extends () => any>(fn: T): T;
 ```
-Without the `onCleanup` function, the event listener would remain attached to the `document` even after the component is removed from the page. This can cause memory leaks and other issues.
+## Parameters
 
-```
-import { createSignal, onCleanup } from "solid-js"
+### `fn`
+
+- **Type:** `() => any`
+- **Required:** Yes
+
+Cleanup function registered on the current reactive scope.
+
+## Return value
+
+- **Type:** `T`
+
+Returns `fn` unchanged.
+
+## Behavior
+
+- In a component, the cleanup runs when that component is unmounted.
+- In a tracking scope such as [`createEffect`](../basic-reactivity/create-effect.md), [`createMemo`](../basic-reactivity/create-memo.md), or [`createRoot`](../reactive-utilities/create-root.md), the cleanup runs when that scope is disposed or re-executes.
+- Multiple cleanup functions run when the owning scope is cleaned up.
+- Calling `onCleanup` outside a reactive owner does not register a cleanup. In development, Solid warns that the cleanup will never run.
+- On the server, cleanup also runs when server-side owners or reactive branches are disposed.
+
+## Examples
+
+### Remove an event listener
+
+```tsx
+import { onCleanup } from "solid-js";
 
 const Component = () => {
+	const handleClick = () => console.log("clicked");
 
-  const [count, setCount] = createSignal(0);
+	document.addEventListener("click", handleClick);
 
-  const handleClick = () => setCount((value) => value + 1);
+	onCleanup(() => {
+		document.removeEventListener("click", handleClick);
+	});
 
-  document.addEventListener("click", handleClick);
-
-  /**
-
-   * Remove the event listener when the component is removed/unmounted from the page.
-
-   */
-
-  onCleanup(() => {
-
-    document.removeEventListener("click", handleClick);
-
-  });
-
-  return <main>Document has been clicked {count()} times</main>;
-
+	return <main>Listening for document clicks</main>;
 };
 ```
+### Clean up before an effect re-runs
+
+```tsx
+import { createEffect, createSignal, onCleanup } from "solid-js";
+
+function Example() {
+	const [topic, setTopic] = createSignal("news");
+
+	createEffect(() => {
+		const currentTopic = topic();
+
+		console.log("subscribing to", currentTopic);
+
+		onCleanup(() => {
+			console.log("cleaning up", currentTopic);
+		});
+	});
+
+	return <button onClick={() => setTopic("sports")}>Change topic</button>;
+}
+```
+## Related
+
+- [`onMount`](on-mount.md)
+- [`createEffect`](../basic-reactivity/create-effect.md)
+- [`createRoot`](../reactive-utilities/create-root.md)

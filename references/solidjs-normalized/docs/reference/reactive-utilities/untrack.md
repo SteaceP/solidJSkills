@@ -1,55 +1,98 @@
-# untrack
+# Untrack
 
-Ignores tracking any of the dependencies in the executing code block and returns the value. This helper is useful when a certain `prop` will never update and thus it is ok to use it outside of the tracking scope.
+`untrack` executes a function without collecting dependencies from the current reactive scope.
 
+## Import
+
+```ts
+import { untrack } from "solid-js";
 ```
-import { untrack } from "solid-js"
+## Type
+
+```ts
+function untrack<T>(fn: () => T): T;
+```
+## Parameters
+
+### `fn`
+
+- **Type:** `() => T`
+- **Required:** Yes
+
+Function executed outside the current tracking context.
+
+## Return value
+
+- **Type:** `T`
+
+Returns the value produced by `fn` unchanged.
+
+## Behavior
+
+- `untrack` only affects reads inside the provided function. Signals read there do not become dependencies of the surrounding computation.
+- `untrack` does not create or restore an owner.
+
+## Examples
+
+### Read part of an effect without tracking
+
+```tsx
+import { createEffect, untrack } from "solid-js";
 
 export function Component(props) {
+	createEffect(() => {
+		console.log(
+			props.id,
+			untrack(() => props.label)
+		);
+	});
 
-    const value = untrack(() => props.value)
-
-    return <div>{value}</div>
-
-    }
-
+	return <div>{props.id}</div>;
 }
 ```
-* * *
+### Avoid tracking part of an effect
 
-## Initial and Default Values
+```tsx
+import { createEffect, createSignal, untrack } from "solid-js";
 
-It is not necessary to manually untrack values that are suppose to serve as a default or initial value to a signal. Even with the linter configured to enforce tracking, the linter will accept it when a `prop` is prefixed with `default` or `initial` as it is a common pattern to use them as such.
+function Example() {
+	const [count, setCount] = createSignal(0);
+	const [label] = createSignal("count");
 
-initialValuedefaultValue
+	createEffect(() => {
+		console.log(
+			untrack(() => label()),
+			count()
+		);
+	});
 
+	return <button onClick={() => setCount((c) => c + 1)}>Increment</button>;
+}
 ```
-// component.tsx
+## Notes
 
-import { createSignal } from "solid-js"
+Default and initial prop values can be read directly when initializing a signal. This pattern commonly appears with names such as `initialName` and `defaultName`.
+
+```tsx tab title="initialValue" {5}
+import { createSignal } from "solid-js";
 
 export function Component(props) {
+	const [name, setName] = createSignal(props.initialName);
 
-    const [name, setName] = createSignal(props.initialName)
-
-    return <div>{name()}</div>
-
-    }
-
+	return <div>{name()}</div>;
 }
 ```
-```
-// component.tsx
-
-import { createSignal } from "solid-js"
+```tsx tab title="defaultValue" {5}
+import { createSignal } from "solid-js";
 
 export function Component(props) {
+	const [name, setName] = createSignal(props.defaultName);
 
-    const [name, setName] = createSignal(props.defaultName)
-
-    return <div>{name()}</div>
-
-    }
-
+	return <div>{name()}</div>;
 }
 ```
+## Related
+
+- [`onMount`](../lifecycle/on-mount.md)
+- [`createEffect`](../basic-reactivity/create-effect.md)
+- [`on`](on-util.md)

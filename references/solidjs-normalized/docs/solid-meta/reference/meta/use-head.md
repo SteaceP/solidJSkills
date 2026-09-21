@@ -1,211 +1,175 @@
-# useHead
+# Use Head
 
-`useHead` is a low-level API for registering custom `<head>` tags with the nearest [`MetaProvider`](metaprovider.md).
-
-* * *
+`useHead` adds a custom head tag from a `TagDescription` object.
 
 ## Import
 
-```
+```tsx
 import { useHead } from "@solidjs/meta";
 ```
-* * *
-
 ## Type
 
-```
+```tsx
 type TagDescription = {
-
-  tag: string;
-
-  props: Record<string, unknown>;
-
-  setting?: {
-
-    close?: boolean;
-
-    escape?: boolean;
-
-  };
-
-  id: string;
-
-  name?: string;
-
-  ref?: Element;
-
+	tag: string;
+	props: Record<string, unknown>;
+	setting?: {
+		close?: boolean;
+		escape?: boolean;
+	};
+	id: string;
+	name?: string;
+	ref?: Element;
 };
 
 function useHead(tag: TagDescription): void;
 ```
-* * *
-
 ## Parameters
 
-### `tag`
+### Description object
+
+- **Parameter:** `tag`
+- **Type:** `TagDescription`
+- **Required:** Yes
+
+The object passed to `useHead`.
+
+#### `tag`
 
 - **Type:** `string`
 - **Required:** Yes
 
-The tag name to render in `<head>` (eg. `<script>`, `<meta>`, `<title>`).
+Tag name to render in the document head.
 
-### `props`
+#### `props`
 
 - **Type:** `Record<string, unknown>`
 - **Required:** Yes
 
-Attributes and properties applied to the rendered element.
+Attributes, properties, and optional `children` applied to the rendered element.
 
-If `props.children` is provided, is provided, it is used as the element’s content for tags such as `title`, `style`, and `script`. During server-side rendering, arrays of strings are concatenated without commas.
-
-### `setting`
+#### `setting`
 
 - **Type:** `{ close?: boolean; escape?: boolean }`
 - **Required:** No
 
-SSR-only rendering options for the tag contents.
+Server-rendering options for the tag.
 
-#### `close`
-
-- **Type:** `boolean`
-- **Required:** No
-
-Required for elements that cannot be self-closing, such as `script`, `style`, and `title`. When `true`, the server renders a closing tag and includes `children`. If `false`, `children` is not rendered.
-
-#### `escape`
+##### `close`
 
 - **Type:** `boolean`
 - **Required:** No
 
-When `true`, HTML-escapes `children` during SSR. If omitted or `false`, renders `children` as raw HTML.
+When `true`, server rendering emits a closing tag and renders `props.children` between the opening and closing tags.
 
-### `id`
+##### `escape`
+
+- **Type:** `boolean`
+- **Required:** No
+
+When `true`, server rendering escapes `props.children`.
+
+#### `id`
 
 - **Type:** `string`
 - **Required:** Yes
 
-A stable identifier used to match server-rendered tags during hydration. Value should remain consistent for the lifetime of the component.
+Identifier used to find server-rendered tags during hydration.
 
-### `name`
+#### `name`
 
 - **Type:** `string`
 - **Required:** No
 
-An optional label for the tag. With `meta` tags, can mirror `props.name` or `props.property`.
+Optional label for the tag description.
 
-### `ref`
+#### `ref`
 
 - **Type:** `Element`
 - **Required:** No
 
-An existing element to reuse instead of creating a new one, typically managed internally.
-
-* * *
+Existing element reference used by Solid Meta when an element is reused.
 
 ## Return value
 
+- **Type:** `void`
+
 `useHead` does not return a value.
 
-* * *
+## Behavior
+
+- Reads `MetaContext` and throws if no [`MetaProvider`](metaprovider.md) is present.
+- Registers the tag inside a render effect and removes it during cleanup.
+- During client rendering, Solid Meta reuses an existing `[data-sm="<id>"]` element when one is present and has the same tag name.
+- Server rendering flattens `props.children` arrays into a single string before output.
 
 ## Examples
 
-### Simple custom tag
+### Basic usage
 
+```tsx
+import { createUniqueId } from "solid-js";
+import { MetaProvider, useHead } from "@solidjs/meta";
+
+function RssLink() {
+	useHead({
+		tag: "link",
+		id: createUniqueId(),
+		props: {
+			rel: "alternate",
+			type: "application/rss+xml",
+			title: "Solid RSS",
+			href: "/rss.xml",
+		},
+	});
+}
+
+export default function Root() {
+	return (
+		<MetaProvider>
+			<RssLink />
+		</MetaProvider>
+	);
+}
 ```
-import { useHead } from "@solidjs/meta";
+### Script contents
 
-useHead({
+```tsx
+import { createUniqueId } from "solid-js";
+import { MetaProvider, useHead } from "@solidjs/meta";
 
-  tag: "link",
+function JsonLd() {
+	const jsonLD = JSON.stringify({
+		"@context": "https://schema.org",
+		"@type": "WebSite",
+		name: "Solid Docs",
+		url: "https://docs.solidjs.com/",
+	});
 
-  id: "rss-feed",
+	useHead({
+		tag: "script",
+		setting: { close: true, escape: false },
+		id: createUniqueId(),
+		props: {
+			type: "application/ld+json",
+			children: jsonLD,
+		},
+	});
+}
 
-  props: {
-
-    rel: "alternate",
-
-    type: "application/rss+xml",
-
-    title: "Solid RSS",
-
-    href: "/rss.xml",
-
-  },
-
-});
+export default function Root() {
+	return (
+		<MetaProvider>
+			<JsonLd />
+		</MetaProvider>
+	);
+}
 ```
-### JSON-LD per page (script with `close` and `escape`)
-
-```
-import { useHead } from "@solidjs/meta";
-
-const jsonLD = JSON.stringify({
-
-  "@context": "https://schema.org",
-
-  "@type": "WebSite",
-
-  name: "Solid Docs",
-
-  url: "https://docs.solidjs.com/",
-
-});
-
-useHead({
-
-  tag: "script",
-
-  setting: { close: true, escape: false },
-
-  id: "schema-home",
-
-  props: {
-
-    type: "application/ld+json",
-
-    children: jsonLD,
-
-  },
-
-});
-```
-### Reactive updates
-
-```
-import { createSignal } from "solid-js";
-
-import { useHead } from "@solidjs/meta";
-
-const [pageTitle, setPageTitle] = createSignal("Getting started");
-
-useHead({
-
-  tag: "title",
-
-  setting: { close: true, escape: true },
-
-  id: "page-title",
-
-  props: {
-
-    get children() {
-
-      return `${pageTitle()} | Solid`;
-
-    },
-
-  },
-
-});
-```
-* * *
-
 ## Related
 
-- [`<MetaProvider />`](metaprovider.md)
-- [`<Title />`](title.md)
-- [`<Meta />`](meta.md)
-- [`<Link />`](link.md)
-- [`<Style />`](style.md)
-- [`<Base />`](base.md)
+- [`MetaProvider`](metaprovider.md)
+- [`Title`](title.md)
+- [`Meta`](meta.md)
+- [`Link`](link.md)
+- [`Style`](style.md)
+- [`Base`](base.md)

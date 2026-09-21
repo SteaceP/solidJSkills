@@ -1,53 +1,78 @@
-# mapArray
+# Map Array
 
+`mapArray` reactively maps an array and caches mapped items by value identity.
+
+## Import
+
+```ts
+import { mapArray } from "solid-js";
 ```
-import { mapArray } from "solid-js"
+## Type
 
+```ts
 function mapArray<T, U>(
-
-  list: () => readonly T[],
-
-  mapFn: (v: T, i: () => number) => U
-
-): () => U[]
+	list: () => readonly T[] | undefined | null | false,
+	mapFn: (value: T, index: () => number) => U,
+	options?: { fallback?: () => any }
+): () => U[];
 ```
-Reactive map helper that caches each item by reference to reduce unnecessary mapping on updates. It only runs the mapping function once per value and then moves or removes it as needed. The index argument is a signal. The map function itself is not tracking.
+## Parameters
 
-Underlying helper for the `<For>` control flow.
+### `list`
 
+- **Type:** `() => readonly T[] | undefined | null | false`
+- **Required:** Yes
+
+Accessor that returns the source array.
+
+### `mapFn`
+
+- **Type:** `(value: T, index: () => number) => U`
+- **Required:** Yes
+
+Mapping function for each item.
+
+### `options`
+
+#### `fallback`
+
+- **Type:** `() => any`
+
+Fallback accessor used when the source array is empty or falsy. The mapped result becomes a single fallback entry.
+
+## Return value
+
+- **Type:** `() => U[]`
+
+Returns an accessor for the mapped array.
+
+## Behavior
+
+- Items are cached by value identity.
+- The index argument is an accessor.
+- `mapFn` is not a tracking scope, so reads inside the callback do not track unless they happen inside nested JSX or another reactive scope.
+- Reordering reuses existing mapped items for retained source values and updates their index accessors.
+- This is the underlying helper for [`<For>`](../components/for.md).
+
+## Examples
+
+### Map an array with cached items
+
+```ts
+import { createSignal, mapArray } from "solid-js";
+
+const [source] = createSignal([
+	{ id: 1, status: "pending" },
+	{ id: 2, status: "done" },
+]);
+
+const mapped = mapArray(source, (item, index) => ({
+	id: item.id,
+	status: item.status,
+	position: () => index(),
+}));
 ```
-const mapped = mapArray(source, (model) => {
+## Related
 
-  const [name, setName] = createSignal(model.name)
-
-  const [description, setDescription] = createSignal(model.description)
-
-  return {
-
-    id: model.id,
-
-    get name() {
-
-      return name()
-
-    },
-
-    get description() {
-
-      return description()
-
-    },
-
-    setName,
-
-    setDescription,
-
-  }
-
-})
-```
-* * *
-
-## Arguments
-
-NameTypeDescriptionlist`() => readonly T[]`The source array to map.mapFn`(v: T, i: () => number) => U`The mapping function.
+- [`<For>`](../components/for.md)
+- [`indexArray`](index-array.md)

@@ -1,25 +1,125 @@
 # A
 
-Solid Router exposes the `<A />` component as a wrapper around the [native anchor tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a). It relies on the routing context provided by the [`<Router>` component](router.md) and, if used outside, will trigger a runtime error.
+`A` wraps the native [`<a>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) element with Solid Router path resolution, active-state classes, and the router `link` marker used by delegated navigation handling.
 
-`<A />` supports relative and base paths. `<a />` doesn't. But `<a />` gets augmented when JS is present via a top-level listener to the DOM, so you get the soft-navigation experience nonetheless.
+## Import
 
-The `<A />` supports the [`<Router />`](router.md) base property (`<Router base="/subpath">`) and prepend it to the received `href` automatically and the `<a />`does not. The same happens with relative paths passed to `<A />`.
+```tsx
+import { A } from "@solidjs/router";
+```
+## Type
 
-The `<A>` tag has an `active` class if its href matches the current location, and `inactive` otherwise. By default matching includes locations that are descendants (e.g.: href `/users` matches locations `/users` and `/users/123`).
+```tsx
+interface AnchorProps extends Omit<
+	JSX.AnchorHTMLAttributes<HTMLAnchorElement>,
+	"state"
+> {
+	href: string;
+	replace?: boolean;
+	noScroll?: boolean;
+	state?: unknown;
+	inactiveClass?: string;
+	activeClass?: string;
+	end?: boolean;
+}
 
-Use the boolean `end` prop to prevent matching these. This is particularly useful for links to the root route `/` which would match everything.
+function A(props: AnchorProps): JSX.Element;
+```
+## Props
 
-* * *
+Besides the router props below, `A` accepts native [`<a>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) attributes except `state`, which Solid Router defines separately.
 
-## Soft Navigation
+### `href`
 
-When JavaScript is present at the runtime, both components behave in a very similar fashion. This is because Solid Router adds a listener at the top level of the DOM and will augment the native `<a />` tag to a more performant experience (with soft navigation).
+- **Type:** `string`
+- **Optional:** No
 
-To prevent, both `<A />` and `<a />` tags from soft navigating when JavaScript is present, pass a `target="_self"` attribute.
+Path passed to the router and rendered as the anchor `href`.
 
-* * *
+### `replace`
 
-## Props Reference
+- **Type:** `boolean`
+- **Optional:** Yes
 
-proptypedescriptionhrefstringThe path of the route to navigate to. This will be resolved relative to the route that the link is in, but you can preface it with `/` to refer back to the root.noScrollbooleanIf true, turn off the default behavior of scrolling to the top of the new pagereplacebooleanIf true, don't add a new entry to the browser history. (By default, the new page will be added to the browser history, so pressing the back button will take you to the previous route.)stateunknown[Push this value](https://developer.mozilla.org/en-US/docs/Web/API/History/pushState) to the history stack when navigatinginactiveClassstringThe class to show when the link is inactive (when the current location doesn't match the link)activeClassstringThe class to show when the link is activeendbooleanIf `true`, only considers the link to be active when the current location matches the `href` exactly; if `false`, check if the current location *starts with* `href`
+Forwarded to the rendered anchor for router navigation handling.
+
+### `noScroll`
+
+- **Type:** `boolean`
+- **Optional:** Yes
+
+Forwarded to the rendered anchor for router navigation handling.
+
+### `state`
+
+- **Type:** `unknown`
+- **Optional:** Yes
+
+Value serialized onto the rendered anchor for router navigation handling.
+
+### `inactiveClass`
+
+- **Type:** `string`
+- **Default:** `"inactive"`
+- **Optional:** Yes
+
+Class applied when the link does not match the current location.
+
+### `activeClass`
+
+- **Type:** `string`
+- **Default:** `"active"`
+- **Optional:** Yes
+
+Class applied when the link matches the current location.
+
+### `end`
+
+- **Type:** `boolean`
+- **Optional:** Yes
+
+Controls whether active matching requires an exact pathname match.
+
+## Behavior
+
+- Renders a native `a` element, spreads remaining anchor attributes onto it, and adds the router `link` attribute.
+- Resolves `href` against the current route and renders the router-rendered path when one is available.
+- Active matching compares the normalized current pathname to the normalized target pathname. Without `end`, descendant paths also match.
+- When the link is an exact match, `A` sets `aria-current="page"`.
+- `state` is serialized with `JSON.stringify` before being passed to the rendered anchor.
+- Requires a router context.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { A, Route, Router } from "@solidjs/router";
+
+function Layout(props) {
+	return (
+		<>
+			<nav>
+				<A href="/">Home</A>
+				<A href="/docs" activeClass="selected">
+					Docs
+				</A>
+			</nav>
+			{props.children}
+		</>
+	);
+}
+
+export default function App() {
+	return (
+		<Router root={Layout}>
+			<Route path="/" component={() => <h1>Home</h1>} />
+			<Route path="/docs" component={() => <h1>Docs</h1>} />
+		</Router>
+	);
+}
+```
+## Related
+
+- [`Router`](router.md)
+- [`useNavigate`](../primitives/use-navigate.md)

@@ -1,38 +1,54 @@
-# ref
+# Ref
 
-Refs are a way of getting access to underlying DOM elements in our JSX. While it is true one could just assign an element to a variable, it is more optimal to leave components in the flow of JSX. Refs are assigned at render time but before the elements are connected to the DOM. They come in 2 flavors.
+`ref` captures a rendered element or forwarded component ref.
 
+## Syntax
+
+```tsx
+<div ref={value} />
 ```
-// variable assigned directly by ref
+## Value
 
+- **Type:** variable binding or callback function
+
+For DOM elements, variable refs are assigned during render and callback refs receive the element.
+
+## Behavior
+
+- Refs are assigned during rendering before the element is connected to the DOM.
+- A variable ref assigns the rendered element to the referenced variable.
+- A callback ref is called with the rendered element. When `ref` comes through a spread, functional refs are invoked from the spread handling path instead.
+- Component refs work only when the component uses or forwards the `ref` prop to an underlying element or child component.
+
+## Examples
+
+### Variable ref
+
+```tsx
 let myDiv;
-
-// use onMount or createEffect to read after connected to the DOM
 
 onMount(() => console.log(myDiv));
 
-<div ref={myDiv} />
-
-// Or, callback function (called before connected to the DOM)
-
-<div ref={el => console.log(el)} />
+<div ref={myDiv} />;
 ```
-Refs can also be used on Components. They still need to be attached on the other side.
+### Callback ref
 
+```tsx
+<div ref={(el) => console.log(el)} />
 ```
+### Component ref
+
+```tsx
 function MyComp(props) {
-
-  return <div ref={props.ref} />
-
+	return <div ref={props.ref} />;
 }
 
 function App() {
-
-  let myDiv
-
-  onMount(() => console.log(myDiv.clientWidth))
-
-  return <MyComp ref={myDiv} />
-
+	let myDiv;
+	onMount(() => console.log(myDiv.clientWidth));
+	return <MyComp ref={myDiv} />;
 }
 ```
+## Related
+
+- [`onMount`](../lifecycle/on-mount.md)

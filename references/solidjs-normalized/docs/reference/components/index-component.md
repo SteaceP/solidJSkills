@@ -1,75 +1,81 @@
-# &lt;Index&gt;
+# Index Component
 
-Non-keyed list iteration (rendered nodes are keyed to an array index). This is useful when there is no conceptual key, like if the data consists of primitives and it is the index that is fixed rather than the value.
+`<Index>` renders a list by index.
 
+## Import
+
+```ts
+import { Index } from "solid-js";
 ```
-import { Index } from "solid-js"
+## Type
 
-import type { JSX } from "solid-js"
+```ts
+type Accessor<T> = () => T;
 
-function Index<T, U extends JSX.Element>(props: {
-
-  each: readonly T[];
-
-  fallback?: JSX.Element;
-
-  children: (item: () => T, index: number) => U;
-
-}): () => U[];
+function Index<T extends readonly any[], U extends JSX.Element>(props: {
+	each: T | undefined | null | false;
+	fallback?: JSX.Element;
+	children: (item: Accessor<T[number]>, index: number) => U;
+}): JSX.Element;
 ```
-A super simple implementation of this component might look like this:
-
-```
-function Index<T, U extends JSX.Element>(props: {
-
-  each: readonly T[];
-
-  fallback?: JSX.Element;
-
-  children: (item: () => T, index: number) => U;
-
-}) {
-
-  return () => {
-
-    const [items, setItems] = createSignal(props.each);
-
-    return props.each.map((_, i) => props.children(() => items()[i], i));
-
-  };
-
-}
-```
-Here's a look at the implementation of the `Index` component in Solid:
-
-```
-<Index each={state.list} fallback={<div>Loading...</div>}>
-
-  {(item) => <div>{item()}</div>}
-
-</Index>
-```
-Notice that the item is a signal unlike the `For` component. This is because the `Index` component is not keyed to the item itself but rather the index.
-
-Optional second argument is an index number:
-
-```
-<Index each={state.list} fallback={<div>Loading...</div>}>
-
-  {(item, index) => (
-
-    <div>
-
-      #{index} {item()}
-
-    </div>
-
-  )}
-
-</Index>
-```
-* * *
-
 ## Props
 
-NameTypeDescriptioneach`readonly T[]`The array to iterate over.fallback`JSX.Element`Optional fallback element to render while the array is loading.children`(item: () => T, index: number) => U`The function that renders the children.
+### `each`
+
+- **Type:** `T | undefined | null | false`
+
+Source list.
+
+### `fallback`
+
+- **Type:** `JSX.Element`
+
+Content rendered when `each` is an empty array, `undefined`, `null`, or `false`.
+
+### `children`
+
+- **Type:** `(item: Accessor<T[number]>, index: number) => U`
+
+Child function. It receives an accessor for the item at that index and the index number.
+
+## Return value
+
+- **Type:** `JSX.Element`
+
+## Behavior
+
+- `<Index>` maps items by index rather than by value identity.
+- The `item` argument is an accessor.
+- The `index` argument is a number.
+- Updating a value at the same index updates the corresponding rendered item.
+- When the array is reordered, rendered positions stay tied to indexes, and `item()` updates to the current value at that index.
+- `<Index>` uses [`indexArray`](../reactive-utilities/index-array.md) internally.
+
+## Examples
+
+### Basic usage
+
+```tsx
+const items = ["A", "B", "C"];
+
+<Index each={items} fallback={<div>No items</div>}>
+	{(item) => <div>{item()}</div>}
+</Index>;
+```
+### Access the index
+
+```tsx
+const items = ["A", "B", "C"];
+
+<Index each={items}>
+	{(item, index) => (
+		<div>
+			#{index} {item()}
+		</div>
+	)}
+</Index>;
+```
+## Related
+
+- [`<For>`](for.md)
+- [`indexArray`](../reactive-utilities/index-array.md)

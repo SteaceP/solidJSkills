@@ -1,171 +1,152 @@
-# createAsyncStore
+# Create Async Store
 
-The `createAsyncStore` primitive manages asynchronous data fetching by tracking the result of a promise-returning function in a [store](../../../concepts/stores.md).
-
-The main difference from [createAsync](create-async.md) is its use of reconciliation: when new data arrives, it intelligently merges with the existing store, updating only changed fields while preserving unchanged state.
-
-* * *
+`createAsyncStore` is a wrapper around `createResource` that tracks a promise-returning function and returns the resolved value through a store-backed accessor.
 
 ## Import
 
-```
+```tsx
 import { createAsyncStore } from "@solidjs/router";
 ```
-* * *
-
 ## Type
 
-```
+```tsx
 function createAsyncStore<T>(
-
-  fn: (prev: T) => Promise<T>,
-
-  options: {
-
-    name?: string;
-
-    initialValue: T;
-
-    deferStream?: boolean;
-
-    reconcile?: ReconcileOptions;
-
-  }
-
+	fn: (prev: T) => Promise<T>,
+	options: {
+		name?: string;
+		initialValue: T;
+		deferStream?: boolean;
+		reconcile?: ReconcileOptions;
+	}
 ): AccessorWithLatest<T>;
 
 function createAsyncStore<T>(
-
-  fn: (prev: T | undefined) => Promise<T>,
-
-  options?: {
-
-    name?: string;
-
-    initialValue?: T;
-
-    deferStream?: boolean;
-
-    reconcile?: ReconcileOptions;
-
-  }
-
+	fn: (prev: T | undefined) => Promise<T>,
+	options?: {
+		name?: string;
+		initialValue?: T;
+		deferStream?: boolean;
+		reconcile?: ReconcileOptions;
+	}
 ): AccessorWithLatest<T | undefined>;
 ```
-* * *
-
 ## Parameters
 
-### `fetcher`
+### `fn`
 
 - **Type:** `(prev: T | undefined) => Promise<T>`
 - **Required:** Yes
 
-An asynchronous function or a function that returns a `Promise`. The resolved value of this `Promise` is what `createAsyncStore` tracks. This function is reactive and will automatically re-execute if any of its dependencies change.
+Promise-returning function used as the async resource fetcher.
+The resolved value is stored in the returned store-backed accessor.
+Synchronous reactive reads made while `fn` runs are tracked, causing the resource to rerun when those dependencies change.
 
 ### `options`
 
-- **Type:** `{ name?: string; initialValue?: T; deferStream?: boolean; reconcile?: ReconcileOptions; }`
+- **Type:** `{ name?: string; initialValue?: T; deferStream?: boolean; reconcile?: ReconcileOptions }`
+- **Default:** `{}`
 - **Required:** No
 
-An object for configuring the primitive. It has the following properties.
+Options for the resource name, initial store value, server streaming, and store reconciliation.
 
 #### `name`
 
 - **Type:** `string`
 - **Required:** No
 
-A name for the resource, used for identification in debugging tools like [Solid Debugger](https://github.com/thetarnav/solid-devtools).
+Name used by the resource for development debugging.
 
 #### `initialValue`
 
 - **Type:** `T`
 - **Required:** No
 
-The initial value of the returned store before the fetcher resolves.
+Initial store value returned by the accessor before the async function resolves.
 
 #### `deferStream`
 
 - **Type:** `boolean`
+- **Default:** `false`
 - **Required:** No
 
-If `true`, [streaming](../../data-fetching/streaming.md) will be deferred until the resource has resolved.
+If `true`, [streaming](../../data-fetching/streaming.md) waits for this resource to resolve before flushing.
 
 #### `reconcile`
 
 - **Type:** `ReconcileOptions`
 - **Required:** No
 
-[Options](../../../reference/store-utilities/reconcile.md#options) passed directly to the `reconcile` function. It controls how new data is merged with the existing store.
-
-* * *
+Options passed to [`reconcile`](../../../reference/store-utilities/reconcile.md).
+These options control how resolved values are merged into the existing store.
 
 ## Return value
 
-`createAsyncStore` returns a derived signal that contains the resolved value of the fetcher as a store.
+- **Type:** `AccessorWithLatest<T | undefined>`
 
-While the fetcher is executing for the first time, unless an `initialValue` is specified, the store's value is `undefined`.
+Returns an accessor for the resolved store value.
+Before the first resolution, the accessor returns `initialValue` when provided and `undefined` otherwise.
 
-* * *
+### `latest`
+
+- **Type:** `T | undefined`
+
+Getter that reads the `latest` value from the `createResource` result.
+
+## Behavior
+
+- Calls `createResource` with store-backed storage created by `createStore`.
+- `fn` receives `unwrap(resource.latest)` when the resource has resolved, or `undefined` while unresolved.
+- Initial store storage is created from `structuredClone(initialValue)`.
+- Resolved values are cloned with `structuredClone` and merged with `reconcile`.
+- The `reconcile` option is passed to [`reconcile`](../../../reference/store-utilities/reconcile.md) when store writes run.
+- The returned accessor reads the current store-backed resource value.
+- During hydration, `window.fetch` and `Promise` are temporarily replaced with mock implementations while `fn` runs.
 
 ## Examples
 
-### Basic usage
+### With reactive arguments
 
-```
+```tsx
 import { For, createSignal } from "solid-js";
-
 import { createAsyncStore, query } from "@solidjs/router";
 
-const getNotificationsQuery = query(async (unreadOnly: boolean) => {
+type Notification = {
+	id: string;
+	message: string;
+	user: { name: string };
+};
 
-  // ... Fetches the list of notifications from the server.
-
+const getNotifications = query(async (unreadOnly: boolean) => {
+	const response = await fetch(`/api/notifications?unread=${unreadOnly}`);
+	return response.json() as Promise<Notification[]>;
 }, "notifications");
 
 function Notifications() {
+	const [unreadOnly, setUnreadOnly] = createSignal(false);
+	const notifications = createAsyncStore(() => getNotifications(unreadOnly()), {
+		initialValue: [],
+	});
 
-  const [unreadOnly, setUnreadOnly] = createSignal(false);
-
-  const notifications = createAsyncStore(() =>
-
-    getNotificationsQuery(unreadOnly())
-
-  );
-
-  return (
-
-    <div>
-
-      <button onClick={() => setUnreadOnly(!unreadOnly())}>
-
-        Toggle unread
-
-      </button>
-
-      <ul>
-
-        <For each={notifications()}>
-
-          {(notification) => (
-
-            <li>
-
-              <div>{notification.message}</div>
-
-              <div>{notification.user.name}</div>
-
-            </li>
-
-          )}
-
-        </For>
-
-      </ul>
-
-    </div>
-
-  );
-
+	return (
+		<>
+			<button onClick={() => setUnreadOnly((value) => !value)}>
+				Toggle unread
+			</button>
+			<ul>
+				<For each={notifications()}>
+					{(notification) => (
+						<li>
+							<div>{notification.message}</div>
+							<div>{notification.user.name}</div>
+						</li>
+					)}
+				</For>
+			</ul>
+		</>
+	);
 }
 ```
+## Related
+
+- [`createAsync`](create-async.md)
+- [`reconcile`](../../../reference/store-utilities/reconcile.md)

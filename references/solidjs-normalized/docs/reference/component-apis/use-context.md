@@ -1,39 +1,81 @@
-# useContext
+# Use Context
 
-Used to grab context within a context provider scope to allow for deep passing of props without having to pass them through each Component function. It's therefore used in conjunction with [`createContext`](create-context.md) to consume the data from a Provider scope and thus avoid passing data through intermediate components (prop drilling).
+`useContext` reads the nearest provider value for a context object in the current owner tree.
 
+## Import
+
+```ts
+import { useContext } from "solid-js";
 ```
-const [state, { increment, decrement }] = useContext(CounterContext)
+## Type
+
+```ts
+interface Context<T> {
+	id: symbol;
+	Provider: (props: { value: T; children: any }) => any;
+	defaultValue: T;
+}
+
+function useContext<T>(context: Context<T>): T;
 ```
-* * *
+## Parameters
 
-## Recommended usage
+### `context`
 
-It is often a good idea to wrap `useContext` in a function like so:
+- **Type:** `Context<T>`
+- **Required:** Yes
 
-```
-function useCounterContext() {
+Context object created by [`createContext`](create-context.md).
 
-  const context = useContext(CounterContext)
+## Return value
 
-  if (!context) {
+- **Type:** `T`
 
-    throw new Error("useCounterContext: cannot find a CounterContext")
+Returns the value provided by the nearest matching `Context.Provider`.
+If the context was created without a default value, `T` can include `undefined`.
+If no provider is found, it returns the context's default value or `undefined`.
 
-  }
+## Behavior
 
-  return context
+- `useContext` reads the nearest matching provider in the current owner tree.
+- If no matching provider is found, it returns the default value from [`createContext`](create-context.md), or `undefined` when no default value was supplied.
+- A provider value of `undefined` is treated the same as a missing provider and returns the default value or `undefined`.
 
+## Examples
+
+### Read a context value
+
+```tsx
+import { createContext, useContext } from "solid-js";
+
+const CounterContext = createContext<number>(0);
+
+function CounterValue() {
+	const value = useContext(CounterContext);
+
+	return <span>{value}</span>;
 }
 ```
-See the API reference of [createContext](create-context.md) the API on how to generate a Provider scope. And check the [Context concepts](../../concepts/context.md) for more information on how to architecture your contexts.
+### Throw when a provider is missing
 
-* * *
+This example checks for `undefined` when the context was created without a default value.
 
-## Type signature
+```ts
+import { createContext, useContext } from "solid-js";
 
+const CounterContext = createContext<number>();
+
+function useCounterContext() {
+	const context = useContext(CounterContext);
+
+	if (context === undefined) {
+		throw new Error("CounterContext is missing");
+	}
+
+	return context;
+}
 ```
-import { type Context } from "solid-js"
+## Related
 
-function useContext<T>(context: Context<T>): T
-```
+- [`createContext`](create-context.md)
+- [Context](../../concepts/context.md)

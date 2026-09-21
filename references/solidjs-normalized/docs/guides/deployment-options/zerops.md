@@ -10,13 +10,9 @@ Deploy and test Zerops Solid recipes with one click:
 - [Deploy Solid Node.js](https://app.zerops.io/recipe/solidjs-nodejs) - [Source Repository](https://github.com/zeropsio/recipe-solidjs-nodejs)
 - [Deploy Solid Static](https://app.zerops.io/recipe/solidjs-static) - [Source Repository](https://github.com/zeropsio/recipe-solidjs-static)
 
-* * *
-
 ## Setting up an Account on Zerops
 
 1. Go to [Zerops Registration](https://app.zerops.io/registration) and sign up using GitHub, GitLab, or just your email.
-
-* * *
 
 ## Setting up your Project Infrastructure
 
@@ -48,117 +44,78 @@ There are two ways to set up a Zerops project and a service:
 
 ##### Static:
 
-```
+```yaml
 project:
-
   name: recipe-solidjs
 
 services:
-
   - hostname: app
-
     type: static
-
     enableSubdomainAccess: true
 ```
 ##### SSR - Node.js:
 
-```
+```yaml
 project:
-
   name: recipe-solidjs
 
 services:
-
   - hostname: app
-
     type: nodejs@20
-
     enableSubdomainAccess: true
 ```
-* * *
-
 ## Add zerops.yml to your repository
 
-The `zerops.yml` configuration file is used to tell Zerops how to build and run your application, it should be placed to the root of your appplication's repository.
+The `zerops.yml` configuration file is used to tell Zerops how to build and run your application, it should be placed at the root of your appplication's repository.
 
 Example for **SSR (Server-Side Rendering)** Apps:
 
 Set up the `zerops.yml` file in the root of your SSR project. Make sure the setup parameter's value is the same as the hostname of the service.
 
-```
+```yaml
 zerops:
-
   - setup: app
-
     build:
-
       base: nodejs@latest
-
       buildCommands:
-
         - pnpm i
-
         - pnpm build
-
       deployFiles:
-
         - .output
-
         - node_modules
-
         - public
-
         - package.json
-
     run:
-
       base: nodejs@latest
-
       ports:
-
         - port: 3000
-
           httpSupport: true
-
       start: pnpm start
 ```
 Example for **SSG (Static Site Generation)** Apps:
 
 Set up the `zerops.yml` file in the root of your SSG project. Make sure the setup parameter's value is the same as the hostname of the service.
 
-```
+```yaml
 zerops:
-
   - setup: app
-
     build:
-
       base: nodejs@latest
-
       buildCommands:
-
         - pnpm i
-
         - pnpm build
-
       deployFiles:
-
         - dist/~
-
     run:
-
       base: static
 ```
 Push the changes to your GitHub/GitLab repository (necessary if you are planning to use GitHub/GitLab).
-
-* * *
 
 ## Deploying your apps
 
 ### Triggering the pipeline automatically by connecting Github/Gitlab repository
 
-You can push your project by [Triggering the pipeline using Zerops CLI](zerops.md#triggering-the-pipeline-using-githubgitlab) or by connecting the app service with your [GitHub](https://docs.zerops.io/references/github-integration/) / [GitLab](https://docs.zerops.io/references/gitlab-integration) repository from inside the service detail.
+You can push your project by [Triggering the pipeline using Zerops CLI](#triggering-the-pipeline-using-githubgitlab) or by connecting the app service with your [GitHub](https://docs.zerops.io/references/github-integration/) / [GitLab](https://docs.zerops.io/references/gitlab-integration) repository from inside the service detail.
 
 ### Triggering the pipeline manually using Zerops CLI
 
@@ -168,40 +125,28 @@ To download the zCLI binary directly, use [zCLI/releases](https://github.com/zer
 
 Linux/MacOS
 
-```
+```bash
 curl -L https://zerops.io/zcli/install.sh | sh
 ```
 Windows
 
-```
+```powershell
 irm https://zerops.io/zcli/install.ps1 | iex
 ```
 Npm
 
+```package-install-global
+@zerops/zcli
 ```
-npm i @zerops/zcli -g
-```
-```
-pnpm i @zerops/zcli -g
-```
-```
-yarn add @zerops/zcli -g
-```
-```
-bun i @zerops/zcli -g
-```
-```
-deno add npm:@zerops/zcli -g
-```
-2. Open Settings &gt; [Access Token Management](https://app.zerops.io/settings/token-management) in the Zerops app and generate a new access token.
+2. Open Settings > [Access Token Management](https://app.zerops.io/settings/token-management) in the Zerops app and generate a new access token.
 3. Log in using your access token with the following command:
 
-```
+```bash
 zcli login <token>
 ```
 4. Navigate to the root of your app (where zerops.yml is located) and run the following command in Terminal to trigger the deploy:
 
-```
+```bash
 zcli push
 ```
 Check the official docs if you need more advanced use-cases for [Zerops Docs](http://docs.zerops.io/).

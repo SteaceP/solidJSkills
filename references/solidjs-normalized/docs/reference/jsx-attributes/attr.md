@@ -1,10 +1,37 @@
-# attr:*
+# Attr
 
-Forces the prop to be treated as an attribute instead of a property. Useful for Web Components where you want to set attributes.
+`attr:*` forces a JSX key to be written as an attribute instead of a property.
 
+:::note[Strong-Typing Custom Attributes]
+Type definitions are required when using TypeScript.
+See the [TypeScript](../../configuration/typescript.md#forcing-properties-and-custom-attributes) page for examples.
+:::
+
+## Syntax
+
+```tsx
+<my-element attr:status={value} />
 ```
+## Value
+
+- **Type:** attribute value
+
+Value passed to normal attribute serialization after the `attr:` prefix is removed.
+
+## Behavior
+
+- `attr:name={value}` writes the value to the `name` attribute after the `attr:` prefix is removed.
+- In the DOM runtime, `attr:name={undefined}` or `attr:name={null}` removes the attribute.
+- In SSR output, the stripped attribute name and escaped value are written as HTML.
+
+## Examples
+
+### Basic usage
+
+```tsx
 <my-element attr:status={props.status} />
 ```
-Strong-Typing Custom Attributes
+## Related
 
-Type definitions are required when using TypeScript. See the [TypeScript](../../configuration/typescript.md#forcing-properties-and-custom-attributes) page for examples.
+- [`prop:*`](prop.md)
+- [`bool:*`](bool.md)

@@ -1,32 +1,43 @@
 # Base
 
-`Base` is a component that specifies the base URL for all relative URLs in the document. This provides a way to define the [`base`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base) element of your document's `head`.
+`Base` adds a [`<base>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base) element that sets the document base URL for resolving relative URLs.
 
-```
+## Import
+
+```tsx
 import { Base } from "@solidjs/meta";
-
-<Base target="_blank" href="https://docs.solidjs.com/" />;
 ```
-* * *
+## Type
 
-## Usage
-
-### Adding `base` tag
-
+```tsx
+const Base: Component<JSX.BaseHTMLAttributes<HTMLBaseElement>>;
 ```
+## Props
+
+Accepts attributes for [`<base>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base).
+
+## Behavior
+
+- Registers a self-closing `base` tag.
+- Non-cascading tags can add one document-head element per active instance.
+- Requires [`MetaProvider`](metaprovider.md) in the component tree.
+
+## Examples
+
+### Basic usage
+
+```tsx
 import { MetaProvider, Base } from "@solidjs/meta";
 
-export default function Root() {
-
-  return (
-
-    <MetaProvider>
-
-      <Base target="_blank" href="https://docs.solidjs.com/" />
-
-    </MetaProvider>
-
-  );
-
+function App() {
+	return (
+		<MetaProvider>
+			<Base href="https://docs.solidjs.com/" />
+		</MetaProvider>
+	);
 }
 ```
+## Related
+
+- [`MetaProvider`](metaprovider.md)
+- [`useHead`](use-head.md)

@@ -1,49 +1,76 @@
-# indexArray
+# Index Array
 
+`indexArray` reactively maps an array by index.
+
+## Import
+
+```ts
+import { indexArray } from "solid-js";
 ```
-import { indexArray } from "solid-js"
+## Type
 
+```ts
 function indexArray<T, U>(
-
-  list: () => readonly T[],
-
-  mapFn: (v: () => T, i: number) => U
-
-): () => U[]
+	list: () => readonly T[] | undefined | null | false,
+	mapFn: (value: () => T, index: number) => U,
+	options?: { fallback?: () => any }
+): () => U[];
 ```
-Similar to `mapArray` except it maps by index. The item is a signal and the index is now the constant.
+## Parameters
 
-Underlying helper for the `<Index>` control flow.
+### `list`
 
+- **Type:** `() => readonly T[] | undefined | null | false`
+- **Required:** Yes
+
+Accessor that returns the source array.
+
+### `mapFn`
+
+- **Type:** `(value: () => T, index: number) => U`
+- **Required:** Yes
+
+Mapping function for each index.
+
+### `options`
+
+#### `fallback`
+
+- **Type:** `() => any`
+
+Fallback accessor used when the source array is empty or falsy.
+The mapped result becomes a single fallback entry.
+
+## Return value
+
+- **Type:** `() => U[]`
+
+Returns an accessor for the mapped array.
+
+## Behavior
+
+- Items are mapped by index rather than by value identity.
+- The item argument is an accessor.
+- The index argument is a number.
+- Updating an item at the same index updates the corresponding mapped result.
+- Reordering the source array changes which item each index points to instead of moving mapped entries by identity.
+- This is the underlying helper for [`<Index>`](../components/index-component.md).
+
+## Examples
+
+### Map an array by index
+
+```ts
+import { createSignal, indexArray } from "solid-js";
+
+const [source] = createSignal([{ status: "pending" }, { status: "done" }]);
+
+const mapped = indexArray(source, (item, index) => ({
+	index,
+	status: () => item().status,
+}));
 ```
-const mapped = indexArray(source, (model) => {
+## Related
 
-  return {
-
-    get id() {
-
-      return model().id
-
-    }
-
-    get firstInitial() {
-
-      return model().firstName[0];
-
-    },
-
-    get fullName() {
-
-      return `${model().firstName} ${model().lastName}`;
-
-    },
-
-  }
-
-});
-```
-* * *
-
-## Arguments
-
-NameTypeDescriptionlist`() => readonly T[]`The list to map.mapFn`(v: () => T, i: number) => U`The mapping function.
+- [`<Index>`](../components/index-component.md)
+- [`mapArray`](map-array.md)

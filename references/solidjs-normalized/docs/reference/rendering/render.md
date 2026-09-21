@@ -1,33 +1,59 @@
-# render
+# Render
 
+`render` mounts a Solid root into a DOM node in the browser.
+
+## Import
+
+```ts
+import { render } from "solid-js/web";
 ```
-import { render } from "solid-js/web"
+## Type
 
-import type { JSX } from "solid-js"
+```ts
+type MountableElement =
+	| Element
+	| Document
+	| ShadowRoot
+	| DocumentFragment
+	| Node;
 
-import type { MountableElement } from "solid-js/web"
-
-function render(
-
-  code: () => JSX.Element,
-
-  element: MountableElement
-
-): () => void
+function render(code: () => JSX.Element, element: MountableElement): () => void;
 ```
-This is the browser app entry point. Provide a top-level component function and an element to mount to. It is recommended this element be empty: while `render` will just append children, the returned dispose function will remove all children.
-
-```
-const dispose = render(App, document.getElementById("app"))
-
-// or
-
-const dispose = render(() => <App />, document.getElementById("app"))
-```
-It's important that the first argument is a function: do not pass JSX directly (as in `render(<App/>, ...)`), because this will call App before render can set up a root to track signal dependencies within App.
-
-* * *
-
 ## Parameters
 
-ArgumentTypeDescriptioncode`() => JSX.Element`Function that returns the application code.elementMountableElementDOM Element to mount the application to
+### `code`
+
+- **Type:** `() => JSX.Element`
+
+Function that returns the root JSX to mount.
+
+### `element`
+
+- **Type:** `MountableElement`
+
+DOM node that receives the rendered output.
+
+## Return value
+
+- **Type:** `() => void`
+
+Dispose function for the mounted root.
+
+## Behavior
+
+- `render` is a browser/client API and is unsupported in the server bundle. It creates a new root and appends its output to `element`. When `element` is `document`, it evaluates `code()` directly instead of using DOM insertion.
+- The first argument must be a function so Solid can establish the root before evaluating JSX.
+- The returned function disposes the root and clears the mount container's content, so mounting into an empty container is safest.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { render } from "solid-js/web";
+
+const dispose = render(() => <App />, document.getElementById("app")!);
+```
+## Related
+
+- [`hydrate`](hydrate.md)

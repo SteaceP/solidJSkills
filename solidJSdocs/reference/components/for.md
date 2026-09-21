@@ -1,0 +1,81 @@
+`<For>` renders a list by item identity.
+
+## Import
+
+```ts
+import { For } from "solid-js";
+```
+
+## Type
+
+```ts
+type Accessor<T> = () => T;
+
+function For<T extends readonly any[], U extends JSX.Element>(props: {
+	each: T | undefined | null | false;
+	fallback?: JSX.Element;
+	children: (item: T[number], index: Accessor<number>) => U;
+}): JSX.Element;
+```
+
+## Props
+
+### `each`
+
+- **Type:** `T | undefined | null | false`
+
+Source list.
+
+### `fallback`
+
+- **Type:** `JSX.Element`
+
+Content rendered when `each` is an empty array, `undefined`, `null`, or `false`.
+
+### `children`
+
+- **Type:** `(item: T[number], index: Accessor<number>) => U`
+
+Child function. It receives the current item and an index accessor.
+
+## Return value
+
+- **Type:** `JSX.Element`
+
+## Behavior
+
+- `<For>` maps items by value identity.
+- If the same item value appears at a new position, its rendered node can be moved instead of recreated.
+- The `index` argument is an accessor.
+- `<For>` uses [`mapArray`](/reference/reactive-utilities/map-array) internally.
+
+## Examples
+
+### Basic usage
+
+```tsx
+const items = ["A", "B", "C"];
+
+<For each={items} fallback={<div>No items</div>}>
+	{(item) => <div>{item}</div>}
+</For>;
+```
+
+### Access the index
+
+```tsx
+const items = ["A", "B", "C"];
+
+<For each={items}>
+	{(item, index) => (
+		<div>
+			#{index()} {item}
+		</div>
+	)}
+</For>;
+```
+
+## Related
+
+- [`<Index>`](/reference/components/index-component)
+- [`mapArray`](/reference/reactive-utilities/map-array)

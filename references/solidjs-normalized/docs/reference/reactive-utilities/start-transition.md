@@ -1,8 +1,75 @@
-# startTransition
+# Start Transition
 
-```
-import { startTransition } from "solid-js"
+`startTransition` starts a transition without exposing a pending-state accessor.
 
-function startTransition(fn: () => void): Promise<void>
+## Import
+
+```ts
+import { startTransition } from "solid-js";
 ```
-Similar to `useTransition` except there is no associated pending state. This one can just be used directly to start the Transition.
+## Type
+
+```ts
+function startTransition(fn: () => unknown): Promise<void>;
+```
+## Parameters
+
+### `fn`
+
+- **Type:** `() => unknown`
+- **Required:** Yes
+
+Function executed inside the transition.
+
+## Return value
+
+- **Type:** `Promise<void>`
+
+Resolves when the transition completes.
+
+## Behavior
+
+- On the client, `fn` runs asynchronously in a microtask and its updates run as a transition.
+- Nested calls inside an active transition reuse that transition and return its existing promise, which resolves after transition work completes.
+- On the server, `startTransition(fn)` runs `fn()` synchronously.
+- `startTransition` is the transition-starting function exposed by [`useTransition`](use-transition.md), without the `pending` accessor.
+
+## Examples
+
+### Basic usage
+
+```tsx
+import {
+	Suspense,
+	createResource,
+	createSignal,
+	startTransition,
+} from "solid-js";
+
+function Example() {
+	const [userId, setUserId] = createSignal(1);
+	const [user] = createResource(userId, async (id) => {
+		const response = await fetch(`/api/users/${id}`);
+		return response.json();
+	});
+
+	async function showNextUser() {
+		await startTransition(() => {
+			setUserId(2);
+		});
+	}
+
+	return (
+		<>
+			<button onClick={showNextUser}>Load next user</button>
+			<Suspense fallback={<p>Loading user...</p>}>
+				<pre>{JSON.stringify(user(), null, 2)}</pre>
+			</Suspense>
+		</>
+	);
+}
+```
+## Related
+
+- [`useTransition`](use-transition.md)
+- [`Suspense`](../components/suspense.md)

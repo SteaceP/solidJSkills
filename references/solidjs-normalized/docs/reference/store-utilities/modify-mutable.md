@@ -1,97 +1,64 @@
-# modifyMutable
+# Modify Mutable
 
-`modifyMutable` streamlines the process of making multiple changes to a mutable Store, as obtained through the use of [`createMutable`](create-mutable.md).
+`modifyMutable` applies a modifier to a mutable store inside a batch.
 
-It operates within a single [`batch`](../reactive-utilities/batch.md), ensuring that dependent computations are updated just once, rather than triggering updates for each individual change.
+## Import
 
+```ts
+import { modifyMutable } from "solid-js/store";
 ```
-import { modifyMutable } from "solid-js/store"
+## Type
 
-function modifyMutable<T>(mutable: T, modifier: (state: T) => T): void
+```ts
+function modifyMutable<T>(state: T, modifier: (state: T) => T): void;
 ```
-The function takes two arguments:
+## Parameters
 
-1. The first argument is the mutable Store that needs modification.
-2. The second argument is a Store modifier, which could be one of those returned by [`reconcile`](reconcile.md).
+### `state`
 
-When passing in your own modifier function, it's important to be aware that its argument is an unwrapped version of the store.
+- **Type:** `T`
 
-For example, if the UI depends on multiple fields of a mutable:
+Mutable store to modify.
 
-```
-import { createMutable } from "solid-js/store"
+### `modifier`
+
+- **Type:** `(state: T) => T`
+
+Modifier applied to the mutable store. For direct mutation-style modifiers, the return value is ignored.
+
+## Return value
+
+- **Type:** `void`
+
+## Behavior
+
+- `modifyMutable` runs inside a [`batch`](../reactive-utilities/batch.md), so multiple changes notify dependents after the modifier completes, and the modifier receives the unwrapped underlying state object instead of the proxy.
+- The modifier can be a function returned by helpers such as [`reconcile`](reconcile.md) or [`produce`](produce.md).
+
+## Examples
+
+### Basic usage
+
+```tsx
+import { createMutable, modifyMutable, produce } from "solid-js/store";
 
 const state = createMutable({
-
-  user: {
-
-    firstName: "John",
-
-    lastName: "Smith",
-
-  },
-
+	user: {
+		firstName: "John",
+		lastName: "Smith",
+	},
 });
 
-<h1>Hello {state.user.firstName + " " + state.user.lastName}</h1>;
-```
-Modifying n fields in sequence will cause the UI to update n times:
-
-```
-state.user.firstName = "Jane";
-
-state.user.lastName = "Doe";
-```
-To trigger just a single update, the fields can be modified using a `batch`:
-
-```
-import { batch } from "solid-js"
-
-batch(() => {
-
-  state.user.firstName = "Jane";
-
-  state.user.lastName = "Doe";
-
-});
-```
-`modifyMutable` combined with [`reconcile`](reconcile.md) or [`produce`](produce.md) provides two alternate ways to do similar things:
-
-```
-import { modifyMutable, reconcile } from "solid-js/store"
-
-// Replace state.user with the specified object (deleting any other fields)
-
 modifyMutable(
-
-  state.user,
-
-  reconcile({
-
-    firstName: "Jane",
-
-    lastName: "Doe",
-
-  })
-
+	state,
+	produce((state) => {
+		state.user.firstName = "Jane";
+		state.user.lastName = "Doe";
+	})
 );
 ```
-```
-import { modifyMutable, produce } from "solid-js/store"
+## Related
 
-// Modify two fields in a batch, triggering just one update
-
-modifyMutable(
-
-  state,
-
-  produce((state) => {
-
-    state.user.firstName = "Jane";
-
-    state.user.lastName = "Doe";
-
-  })
-
-);
-```
+- [`createMutable`](create-mutable.md)
+- [`produce`](produce.md)
+- [`reconcile`](reconcile.md)
