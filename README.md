@@ -219,7 +219,7 @@ npm run validate:skills     # Validates all 18 solid skill definitions and contr
 npm run validate:contracts  # Validates JSON schema contracts
 npm run smoke               # Executes intent router and skill smoke evaluations
 npm run audit -- <path>     # Statically audits SolidJS files/directories for reactivity anti-patterns
-npm run test:integration    # Executes MCP server integration suite (41 checks)
+npm run test:integration    # Executes MCP server integration suite (47 checks)
 ```
 
 ### Automated Releases

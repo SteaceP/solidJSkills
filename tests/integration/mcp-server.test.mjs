@@ -408,12 +408,19 @@ async function runTests() {
             errors.push('resources/read: solid://docs/... template failed to return doc content');
         }
 
-        // 24. List prompts (review-solid-code, audit-reactivity, scaffold-component, migrate-react-to-solid)
+        // 24. List prompts (review-solid-code, audit-reactivity, scaffold-component, migrate-react-to-solid, upgrade-v1-to-v2, debug-hydration)
         const listPromptsId = reqId++;
         sendJsonRpc(serverProc, 'prompts/list', {}, listPromptsId);
         const listPromptsResp = await waitForResponse(serverProc, listPromptsId);
         const promptNames = (listPromptsResp.result?.prompts || []).map((p) => p.name);
-        const expectedPrompts = ['review-solid-code', 'audit-reactivity', 'scaffold-component', 'migrate-react-to-solid'];
+        const expectedPrompts = [
+            'review-solid-code',
+            'audit-reactivity',
+            'scaffold-component',
+            'migrate-react-to-solid',
+            'upgrade-v1-to-v2',
+            'debug-hydration'
+        ];
         for (const name of expectedPrompts) {
             if (!promptNames.includes(name)) {
                 errors.push(`prompts/list: missing prompt '${name}', got: ${JSON.stringify(promptNames)}`);
@@ -637,6 +644,78 @@ async function runTests() {
             errors.push(`detect_solid_version (mixed): expected version_mixing_detected=true, got: ${JSON.stringify(detectMixedParsed)}`);
         }
 
+        // 42. Get prompt (upgrade-v1-to-v2)
+        const getUpgradePromptId = reqId++;
+        sendJsonRpc(serverProc, 'prompts/get', {
+            name: 'upgrade-v1-to-v2',
+            arguments: { code: '<Index each={items()}>{(item) => <div>{item()}</div>}</Index>' }
+        }, getUpgradePromptId);
+        const getUpgradePromptResp = await waitForResponse(serverProc, getUpgradePromptId);
+        const upgradePromptText = getUpgradePromptResp.result?.messages?.[0]?.content?.text || '';
+        if (!upgradePromptText.includes('keyed={false}') || !upgradePromptText.includes('<Loading')) {
+            errors.push('prompts/get: upgrade-v1-to-v2 did not contain expected Solid 2.0 instructions');
+        }
+
+        // 43. Get prompt (debug-hydration)
+        const getHydrationPromptId = reqId++;
+        sendJsonRpc(serverProc, 'prompts/get', {
+            name: 'debug-hydration',
+            arguments: { code: 'function Comp() { return <div>{Date.now()}</div>; }', errorMessage: 'Hydration mismatch at div' }
+        }, getHydrationPromptId);
+        const getHydrationPromptResp = await waitForResponse(serverProc, getHydrationPromptId);
+        const hydrationPromptText = getHydrationPromptResp.result?.messages?.[0]?.content?.text || '';
+        if (!hydrationPromptText.includes('isServer') || !hydrationPromptText.includes('createUniqueId')) {
+            errors.push('prompts/get: debug-hydration did not contain expected hydration debugging steps');
+        }
+
+        // 44. Call audit_solid_code for async-effect-loss
+        const auditAsyncEffectId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'audit_solid_code',
+            arguments: { code: 'createEffect(async () => { await fetch("/api"); console.log(count()); });' }
+        }, auditAsyncEffectId);
+        const auditAsyncEffectResp = await waitForResponse(serverProc, auditAsyncEffectId);
+        const auditAsyncEffectParsed = JSON.parse(auditAsyncEffectResp.result?.content?.[0]?.text || '{}');
+        if (!auditAsyncEffectParsed.issues?.some((i) => i.rule === 'async-effect-loss')) {
+            errors.push(`audit_solid_code (async-effect): expected async-effect-loss rule trigger, got: ${JSON.stringify(auditAsyncEffectParsed)}`);
+        }
+
+        // 45. Call audit_solid_code for effect-self-loop
+        const auditSelfLoopId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'audit_solid_code',
+            arguments: { code: 'createEffect(() => { setCount(count() + 1); });' }
+        }, auditSelfLoopId);
+        const auditSelfLoopResp = await waitForResponse(serverProc, auditSelfLoopId);
+        const auditSelfLoopParsed = JSON.parse(auditSelfLoopResp.result?.content?.[0]?.text || '{}');
+        if (!auditSelfLoopParsed.issues?.some((i) => i.rule === 'effect-self-loop')) {
+            errors.push(`audit_solid_code (self-loop): expected effect-self-loop rule trigger, got: ${JSON.stringify(auditSelfLoopParsed)}`);
+        }
+
+        // 46. Call audit_solid_code for missing-memo-return
+        const auditMemoReturnId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'audit_solid_code',
+            arguments: { code: 'const doubled = createMemo(() => { const x = count() * 2; });' }
+        }, auditMemoReturnId);
+        const auditMemoReturnResp = await waitForResponse(serverProc, auditMemoReturnId);
+        const auditMemoReturnParsed = JSON.parse(auditMemoReturnResp.result?.content?.[0]?.text || '{}');
+        if (!auditMemoReturnParsed.issues?.some((i) => i.rule === 'missing-memo-return')) {
+            errors.push(`audit_solid_code (memo-return): expected missing-memo-return rule trigger, got: ${JSON.stringify(auditMemoReturnParsed)}`);
+        }
+
+        // 47. Call audit_solid_code for no-direct-store-mutation
+        const auditStoreMutId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'audit_solid_code',
+            arguments: { code: 'const [store, setStore] = createStore({ user: { name: "Alice" } }); store.user.name = "Bob";' }
+        }, auditStoreMutId);
+        const auditStoreMutResp = await waitForResponse(serverProc, auditStoreMutId);
+        const auditStoreMutParsed = JSON.parse(auditStoreMutResp.result?.content?.[0]?.text || '{}');
+        if (!auditStoreMutParsed.issues?.some((i) => i.rule === 'no-direct-store-mutation')) {
+            errors.push(`audit_solid_code (store-mutation): expected no-direct-store-mutation rule trigger, got: ${JSON.stringify(auditStoreMutParsed)}`);
+        }
+
     } finally {
         serverProc.kill('SIGTERM');
         await new Promise((r) => setTimeout(r, 200));
@@ -650,7 +729,7 @@ async function runTests() {
         return;
     }
 
-    console.log('MCP integration tests passed (41 checks).');
+    console.log('MCP integration tests passed (47 checks).');
 }
 
 runTests().catch((err) => {

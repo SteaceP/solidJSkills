@@ -137,7 +137,7 @@ npm run validate:corpus     # Validates 233 normalized docs in manifest.jsonl
 npm run validate:skills     # Validates all 18 SolidJS skill definitions and frontmatter
 npm run validate:contracts  # Validates JSON schema contracts in skills/contracts/
 npm run smoke               # Runs intent routing and smoke evaluations
-npm run test:integration    # Runs 41-check MCP server integration suite
+npm run test:integration    # Runs 47-check MCP server integration suite
 ```
 
 ---
