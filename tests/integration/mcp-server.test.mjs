@@ -168,12 +168,72 @@ async function runTests() {
         const listDocsId = reqId++;
         sendJsonRpc(serverProc, 'tools/call', {
             name: 'list_docs',
-            arguments: { directory: 'skills' }
+            arguments: {}
         }, listDocsId);
         const listDocsResp = await waitForResponse(serverProc, listDocsId);
         const listDocsText = listDocsResp.result?.content?.[0]?.text || '';
         if (!listDocsText.includes('SKILL.md') && !listDocsText.includes('solid-')) {
             errors.push('list_docs: expected skill content in result');
+        }
+
+        // 8. Call search_docs with camelCase API symbol (createSignal)
+        const searchDocsId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'search_docs',
+            arguments: { query: 'createSignal' }
+        }, searchDocsId);
+        const searchDocsResp = await waitForResponse(serverProc, searchDocsId);
+        const searchDocsText = searchDocsResp.result?.content?.[0]?.text || '';
+        if (!searchDocsText.includes('create-signal')) {
+            errors.push('search_docs: "createSignal" did not match create-signal doc');
+        }
+
+        // 9. Call search_docs with space-separated topic (state management)
+        const searchDocsTopicId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'search_docs',
+            arguments: { query: 'state management' }
+        }, searchDocsTopicId);
+        const searchDocsTopicResp = await waitForResponse(serverProc, searchDocsTopicId);
+        const searchDocsTopicText = searchDocsTopicResp.result?.content?.[0]?.text || '';
+        if (!searchDocsTopicText.includes('state-management')) {
+            errors.push('search_docs: "state management" did not match state-management guide');
+        }
+
+        // 10. Call read_doc with corpus relative path (reference/basic-reactivity/create-signal.md)
+        const readDocCorpusId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'read_doc',
+            arguments: { path: 'reference/basic-reactivity/create-signal.md' }
+        }, readDocCorpusId);
+        const readDocCorpusResp = await waitForResponse(serverProc, readDocCorpusId);
+        const readDocCorpusText = readDocCorpusResp.result?.content?.[0]?.text || '';
+        if (!readDocCorpusText.includes('createSignal')) {
+            errors.push('read_doc: failed to read document via corpus-relative path');
+        }
+
+        // 11. Call read_doc with doc_id
+        const readDocId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'read_doc',
+            arguments: { path: 'solid-core.reference.basic-reactivity.create-signal' }
+        }, readDocId);
+        const readDocResp = await waitForResponse(serverProc, readDocId);
+        const readDocText = readDocResp.result?.content?.[0]?.text || '';
+        if (!readDocText.includes('createSignal')) {
+            errors.push('read_doc: failed to read document via doc_id');
+        }
+
+        // 12. Call read_corpus_doc with raw source (should gracefully fall back without throwing)
+        const readRawId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'read_corpus_doc',
+            arguments: { doc_id: 'solid-core.reference.basic-reactivity.create-signal', source: 'raw' }
+        }, readRawId);
+        const readRawResp = await waitForResponse(serverProc, readRawId);
+        const readRawText = readRawResp.result?.content?.[0]?.text || '';
+        if (!readRawText.includes('createSignal')) {
+            errors.push('read_corpus_doc: raw fallback failed to return content');
         }
 
     } finally {
@@ -189,7 +249,7 @@ async function runTests() {
         return;
     }
 
-    console.log('MCP integration tests passed (7 checks).');
+    console.log('MCP integration tests passed (12 checks).');
 }
 
 runTests().catch((err) => {

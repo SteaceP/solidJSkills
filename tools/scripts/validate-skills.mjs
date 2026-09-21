@@ -57,13 +57,15 @@ async function listSolidSkillFiles() {
 }
 
 function extractFrontmatter(content) {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n?/);
+  const normalized = content.replace(/\r\n/g, '\n');
+  const match = normalized.match(/^---\n([\s\S]*?)\n---\n?/);
   if (!match) return null;
   return match[1];
 }
 
 function extractSections(content) {
   return content
+    .replace(/\r\n/g, '\n')
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => /^##\s+/.test(line))
@@ -75,8 +77,9 @@ function hasFrontmatterKey(frontmatter, key) {
 }
 
 function hasNonEmptyList(frontmatter, key) {
+  const normalized = frontmatter.replace(/\r\n/g, '\n');
   const pattern = new RegExp(`^${key}:\\s*\\n(?:\\s{2,}-\\s+.+\\n?)+`, 'm');
-  return pattern.test(frontmatter);
+  return pattern.test(normalized);
 }
 
 function frontmatterValue(frontmatter, key) {
@@ -86,7 +89,8 @@ function frontmatterValue(frontmatter, key) {
 }
 
 function outputSchemaPath(frontmatter) {
-  const outputsMatch = frontmatter.match(/^outputs:\s*\n([\s\S]*?)(?=^[a-z0-9_-]+:|\Z)/im);
+  const normalized = frontmatter.replace(/\r\n/g, '\n');
+  const outputsMatch = normalized.match(/^outputs:\s*\n([\s\S]*?)(?=^[a-z0-9_-]+:|\Z)/im);
   if (!outputsMatch) return null;
   const schemaMatch = outputsMatch[1].match(/^\s{2,}schema:\s*(.+)$/m);
   if (!schemaMatch) return null;
@@ -94,7 +98,8 @@ function outputSchemaPath(frontmatter) {
 }
 
 function outputFormat(frontmatter) {
-  const outputsMatch = frontmatter.match(/^outputs:\s*\n([\s\S]*?)(?=^[a-z0-9_-]+:|\Z)/im);
+  const normalized = frontmatter.replace(/\r\n/g, '\n');
+  const outputsMatch = normalized.match(/^outputs:\s*\n([\s\S]*?)(?=^[a-z0-9_-]+:|\Z)/im);
   if (!outputsMatch) return null;
   const formatMatch = outputsMatch[1].match(/^\s{2,}format:\s*(.+)$/m);
   if (!formatMatch) return null;
@@ -103,7 +108,8 @@ function outputFormat(frontmatter) {
 
 async function validateSkill(skillFile) {
   const rel = path.relative(repoRoot, skillFile);
-  const content = await fs.readFile(skillFile, 'utf8');
+  const rawContent = await fs.readFile(skillFile, 'utf8');
+  const content = rawContent.replace(/\r\n/g, '\n');
   const errors = [];
 
   const frontmatter = extractFrontmatter(content);

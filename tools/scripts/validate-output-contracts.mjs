@@ -23,12 +23,14 @@ const macroSkillSchemaMap = {
 };
 
 function extractFrontmatter(content) {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n?/);
+  const normalized = content.replace(/\r\n/g, '\n');
+  const match = normalized.match(/^---\n([\s\S]*?)\n---\n?/);
   return match ? match[1] : null;
 }
 
 function outputSchemaPath(frontmatter) {
-  const outputsMatch = frontmatter.match(/^outputs:\s*\n([\s\S]*?)(?=^[a-z0-9_-]+:|\Z)/im);
+  const normalized = frontmatter.replace(/\r\n/g, '\n');
+  const outputsMatch = normalized.match(/^outputs:\s*\n([\s\S]*?)(?=^[a-z0-9_-]+:|\Z)/im);
   if (!outputsMatch) return null;
   const schemaMatch = outputsMatch[1].match(/^\s{2,}schema:\s*(.+)$/m);
   return schemaMatch ? schemaMatch[1].trim() : null;
