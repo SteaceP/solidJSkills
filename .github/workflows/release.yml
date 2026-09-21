@@ -38,12 +38,12 @@ jobs:
       - name: Create release archive
         run: |
           ARCHIVE_NAME="${{ steps.meta.outputs.name }}.tar.gz"
-          tar czf "$ARCHIVE_NAME" \
-            --exclude="$ARCHIVE_NAME" \
-            --exclude="*.tar.gz" \
+          tar czf "/tmp/$ARCHIVE_NAME" \
+            --warning=no-file-changed \
             --exclude='.git' \
             --exclude='node_modules' \
             .
+          mv "/tmp/$ARCHIVE_NAME" "./$ARCHIVE_NAME"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
