@@ -79,11 +79,16 @@ function detectPackage(sourceRelativePath) {
   if (sourceRelativePath.startsWith('solid-router/')) return 'solid-router';
   if (sourceRelativePath.startsWith('solid-start/')) return 'solid-start';
   if (sourceRelativePath.startsWith('solid-meta/')) return 'solid-meta';
+  if (sourceRelativePath.startsWith('v2/')) return 'solid-v2';
   return 'solid-core';
 }
 
 function detectTopic(sourceRelativePath, packageName) {
   const parts = sourceRelativePath.split('/');
+  if (packageName === 'solid-v2') {
+    if (parts[1] === 'reference') return `reference/${parts[2] || 'general'}`;
+    return parts[1] ? parts[1].replace(/\.md$/, '') : 'overview';
+  }
   if (packageName === 'solid-core') {
     if (parts[0] === 'reference') return `reference/${parts[1] || 'general'}`;
     return parts[0].replace(/\.md$/, '');
@@ -92,7 +97,10 @@ function detectTopic(sourceRelativePath, packageName) {
 }
 
 function toDocId(packageName, normalizedRelativePath) {
-  const stem = normalizedRelativePath.replace(/\.md$/, '');
+  let stem = normalizedRelativePath.replace(/\.md$/, '');
+  if (packageName === 'solid-v2' && stem.startsWith('v2/')) {
+    stem = stem.slice('v2/'.length);
+  }
   const dotted = stem
     .split('/')
     .map((part) => part.replace(/[^a-z0-9-]/g, '-'))

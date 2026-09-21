@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T22:38:35.200Z",
+  "generated_at": "2026-09-21T19:15:09.178Z",
   "package_topic_docs": {
     "solid-core": {
       "advanced-concepts": [
@@ -149,10 +149,6 @@
         "solid-core.reference.store-utilities.produce",
         "solid-core.reference.store-utilities.reconcile",
         "solid-core.reference.store-utilities.unwrap"
-      ],
-      "v2": [
-        "solid-core.v2.index",
-        "solid-core.v2.reference.basic-reactivity.create-signal"
       ]
     },
     "solid-meta": {
@@ -300,6 +296,30 @@
         "solid-start.solid-start.reference.server.start-server",
         "solid-start.solid-start.reference.server.use-server"
       ]
+    },
+    "solid-v2": {
+      "concepts": [
+        "solid-v2.concepts.async-reactivity",
+        "solid-v2.concepts.control-flow",
+        "solid-v2.concepts.start-mode"
+      ],
+      "index": [
+        "solid-v2.index"
+      ],
+      "migration-guide": [
+        "solid-v2.migration-guide"
+      ],
+      "reference/basic-reactivity": [
+        "solid-v2.reference.basic-reactivity.create-memo",
+        "solid-v2.reference.basic-reactivity.create-signal"
+      ],
+      "reference/components": [
+        "solid-v2.reference.components.for",
+        "solid-v2.reference.components.loading-errored"
+      ],
+      "reference/rendering": [
+        "solid-v2.reference.rendering.dynamic"
+      ]
     }
   },
   "api_symbol_docs": {
@@ -346,13 +366,16 @@
       "solid-start.solid-start.building-your-application.routing",
       "solid-start.solid-start.guides.data-mutation",
       "solid-start.solid-start.guides.security",
-      "solid-start.solid-start.reference.client.mount"
+      "solid-start.solid-start.reference.client.mount",
+      "solid-v2.concepts.async-reactivity",
+      "solid-v2.migration-guide"
     ],
     "createSignal": [
       "solid-core.advanced-concepts.fine-grained-reactivity",
       "solid-core.concepts.signals",
+      "solid-core.index",
       "solid-core.reference.basic-reactivity.create-signal",
-      "solid-core.v2.reference.basic-reactivity.create-signal"
+      "solid-v2.reference.basic-reactivity.create-signal"
     ],
     "fine-grained-reactivity": [
       "solid-core.advanced-concepts.fine-grained-reactivity"
@@ -367,7 +390,8 @@
       "solid-start.solid-start.advanced.auth",
       "solid-start.solid-start.advanced.middleware",
       "solid-start.solid-start.building-your-application.routing",
-      "solid-start.solid-start.reference.config.define-config"
+      "solid-start.solid-start.reference.config.define-config",
+      "solid-v2.migration-guide"
     ],
     "basics": [
       "solid-core.concepts.components.basics"
@@ -447,7 +471,8 @@
       "solid-router.solid-router.reference.components.router",
       "solid-router.solid-router.reference.data-apis.query",
       "solid-start.solid-start.building-your-application.routing",
-      "solid-start.solid-start.reference.config.define-config"
+      "solid-start.solid-start.reference.config.define-config",
+      "solid-v2.reference.basic-reactivity.create-signal"
     ],
     "prop:": [
       "solid-core.concepts.context"
@@ -484,7 +509,8 @@
     ],
     "dynamic": [
       "solid-core.concepts.control-flow.dynamic",
-      "solid-core.reference.components.dynamic"
+      "solid-core.reference.components.dynamic",
+      "solid-v2.reference.rendering.dynamic"
     ],
     "error-boundary": [
       "solid-core.concepts.control-flow.error-boundary",
@@ -532,14 +558,16 @@
     ],
     "createMemo": [
       "solid-core.concepts.derived-values.memos",
-      "solid-core.reference.basic-reactivity.create-memo"
+      "solid-core.reference.basic-reactivity.create-memo",
+      "solid-v2.reference.basic-reactivity.create-memo"
     ],
     "memos": [
       "solid-core.concepts.derived-values.memos"
     ],
     "createEffect": [
       "solid-core.concepts.effects",
-      "solid-core.reference.basic-reactivity.create-effect"
+      "solid-core.reference.basic-reactivity.create-effect",
+      "solid-v2.index"
     ],
     "effects": [
       "solid-core.concepts.effects"
@@ -572,7 +600,8 @@
     ],
     "solid-js": [
       "solid-core.concepts.signals",
-      "solid-core.reference.rendering.dev"
+      "solid-core.reference.rendering.dev",
+      "solid-v2.migration-guide"
     ],
     "stores": [
       "solid-core.concepts.stores"
@@ -621,7 +650,8 @@
       "solid-core.configuration.typescript",
       "solid-core.guides.styling-components.sass",
       "solid-core.guides.testing",
-      "solid-router.solid-router.reference.response-helpers.redirect"
+      "solid-router.solid-router.reference.response-helpers.redirect",
+      "solid-v2.migration-guide"
     ],
     "typescript": [
       "solid-core.configuration.typescript"
@@ -699,7 +729,9 @@
       "solid-core.reference.basic-reactivity.create-resource",
       "solid-router.solid-router.reference.data-apis.create-async",
       "solid-router.solid-router.reference.data-apis.create-async-store",
-      "solid-start.solid-start.building-your-application.data-fetching"
+      "solid-start.solid-start.building-your-application.data-fetching",
+      "solid-v2.concepts.async-reactivity",
+      "solid-v2.index"
     ],
     "error": [
       "solid-core.guides.fetching-data"
@@ -816,10 +848,10 @@
     ],
     "index": [
       "solid-core.index",
-      "solid-core.v2.index",
       "solid-meta.solid-meta.index",
       "solid-router.solid-router.index",
-      "solid-start.solid-start.index"
+      "solid-start.solid-start.index",
+      "solid-v2.index"
     ],
     "quick-start": [
       "solid-core.quick-start"
@@ -835,7 +867,8 @@
       "solid-core.reference.basic-reactivity.create-effect"
     ],
     "create-memo": [
-      "solid-core.reference.basic-reactivity.create-memo"
+      "solid-core.reference.basic-reactivity.create-memo",
+      "solid-v2.reference.basic-reactivity.create-memo"
     ],
     "equals": [
       "solid-core.reference.basic-reactivity.create-memo"
@@ -845,7 +878,7 @@
     ],
     "create-signal": [
       "solid-core.reference.basic-reactivity.create-signal",
-      "solid-core.v2.reference.basic-reactivity.create-signal"
+      "solid-v2.reference.basic-reactivity.create-signal"
     ],
     "create-context": [
       "solid-core.reference.component-apis.create-context"
@@ -889,7 +922,8 @@
     "for": [
       "solid-core.reference.components.for",
       "solid-core.reference.rendering.hydration-script",
-      "solid-router.solid-router.reference.data-apis.action"
+      "solid-router.solid-router.reference.data-apis.action",
+      "solid-v2.reference.components.for"
     ],
     "index-component": [
       "solid-core.reference.components.index-component"
@@ -1926,6 +1960,42 @@
     ],
     "useServer": [
       "solid-start.solid-start.reference.server.use-server"
+    ],
+    "async-reactivity": [
+      "solid-v2.concepts.async-reactivity"
+    ],
+    "asyncReactivity": [
+      "solid-v2.concepts.async-reactivity"
+    ],
+    "control-flow": [
+      "solid-v2.concepts.control-flow"
+    ],
+    "controlFlow": [
+      "solid-v2.concepts.control-flow"
+    ],
+    "start-mode": [
+      "solid-v2.concepts.start-mode"
+    ],
+    "startMode": [
+      "solid-v2.concepts.start-mode"
+    ],
+    "NotReadyError": [
+      "solid-v2.index"
+    ],
+    "xmlns": [
+      "solid-v2.index"
+    ],
+    "migration-guide": [
+      "solid-v2.migration-guide"
+    ],
+    "migrationGuide": [
+      "solid-v2.migration-guide"
+    ],
+    "loading-errored": [
+      "solid-v2.reference.components.loading-errored"
+    ],
+    "loadingErrored": [
+      "solid-v2.reference.components.loading-errored"
     ]
   }
 }

@@ -1,0 +1,21 @@
+# Auto-detect text files and normalize line endings to LF
+* text=auto eol=lf
+
+# Explicitly ensure markdown, json, jsonl, and javascript use LF
+*.md text eol=lf
+*.mdx text eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary

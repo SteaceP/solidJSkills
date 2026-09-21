@@ -1,6 +1,13 @@
 Solid is a modern JavaScript framework designed to build responsive and high-performing user interfaces (UI).
 It prioritizes a simple and predictable development experience, making it a great choice for developers of all skill levels.
 
+## Documentation Hubs & Versioning
+
+The Solid documentation is structured into two distinct tracks to preserve reactivity correctness and avoid API mixing:
+
+- **SolidJS 1.x (Production Stable)**: The default documentation found across [`/concepts`](/concepts), [`/reference`](/reference), [`/advanced-concepts`](/advanced-concepts), [`/solid-router`](/solid-router), and [`/solid-start`](/solid-start). Target this version for all active production deployments using `createSignal`, `<Index>`, `<Show>`, `<For>`, and `@solidjs/start`.
+- **SolidJS 2.0-rc.9 (Release Candidate)**: The upcoming major release documented in the dedicated [`/v2`](/v2) hub. Covers native async graph reactivity ("Fetch High, Block Low", "Write Sync, Run Async"), `<For keyed={false}>`, `<Loading>` / `<Errored>`, `dynamic()`, and the new Vite start mode.
+
 ## What is Solid?
 
 As a JavaScript framework, Solid embraces reactivity and fine-grained updates.

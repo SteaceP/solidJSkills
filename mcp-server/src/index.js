@@ -451,7 +451,7 @@ server.registerTool(
       'List normalized SolidJS corpus documents with stable metadata fields (doc_id, package, topic, source_path).',
     inputSchema: z
       .object({
-        package: z.string().optional().describe('Optional package filter: solid-core, solid-router, solid-start, solid-meta'),
+        package: z.string().optional().describe('Optional package filter: solid-core, solid-router, solid-start, solid-meta, solid-v2'),
         topic: z.string().optional().describe('Optional topic filter (exact match).'),
         limit: z.number().int().min(1).max(500).default(100).describe('Maximum records to return.')
       })
