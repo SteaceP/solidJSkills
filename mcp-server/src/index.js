@@ -12,6 +12,7 @@ import {
   findSimilarDocs
 } from './cache.js';
 import { registerResources } from './resources.js';
+import { registerPrompts } from './prompts.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -564,6 +565,7 @@ server.registerTool(
 );
 
 registerResources(server, { repoRoot, normalizedRoot, normalizedDocsRoot, manifestPath });
+registerPrompts(server);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

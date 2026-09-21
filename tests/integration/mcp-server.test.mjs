@@ -396,6 +396,30 @@ async function runTests() {
             errors.push('resources/read: solid://docs/... template failed to return doc content');
         }
 
+        // 24. List prompts (review-solid-code, audit-reactivity, scaffold-component, migrate-react-to-solid)
+        const listPromptsId = reqId++;
+        sendJsonRpc(serverProc, 'prompts/list', {}, listPromptsId);
+        const listPromptsResp = await waitForResponse(serverProc, listPromptsId);
+        const promptNames = (listPromptsResp.result?.prompts || []).map((p) => p.name);
+        const expectedPrompts = ['review-solid-code', 'audit-reactivity', 'scaffold-component', 'migrate-react-to-solid'];
+        for (const name of expectedPrompts) {
+            if (!promptNames.includes(name)) {
+                errors.push(`prompts/list: missing prompt '${name}', got: ${JSON.stringify(promptNames)}`);
+            }
+        }
+
+        // 25. Get prompt (review-solid-code)
+        const getPromptId = reqId++;
+        sendJsonRpc(serverProc, 'prompts/get', {
+            name: 'review-solid-code',
+            arguments: { code: 'const [count, setCount] = createSignal(0);' }
+        }, getPromptId);
+        const getPromptResp = await waitForResponse(serverProc, getPromptId);
+        const promptMsgText = getPromptResp.result?.messages?.[0]?.content?.text || '';
+        if (!promptMsgText.includes('Reactivity Preservation') || !promptMsgText.includes('createSignal(0)')) {
+            errors.push('prompts/get: review-solid-code did not contain expected review instructions and code');
+        }
+
     } finally {
         serverProc.kill('SIGTERM');
         await new Promise((r) => setTimeout(r, 200));
@@ -409,7 +433,7 @@ async function runTests() {
         return;
     }
 
-    console.log('MCP integration tests passed (23 checks).');
+    console.log('MCP integration tests passed (25 checks).');
 }
 
 runTests().catch((err) => {
