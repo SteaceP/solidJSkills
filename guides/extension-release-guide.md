@@ -22,32 +22,48 @@ Since solidJSkills is platform-independent (no compiled binaries), a single gene
 
 ## Creating a release
 
-### 1. Update the version
+### 1. Update the version and validate
 
-Edit `gemini-extension.json` and set the `version` field:
+Update the `version` field in both `gemini-extension.json` and the root `package.json` (e.g. `1.3.0`):
 
 ```json
+// gemini-extension.json
 {
-  "version": "1.2.0"
+  "name": "solidjskills",
+  "version": "1.3.0"
 }
+```
+
+```json
+// package.json
+{
+  "name": "solidjskills-root",
+  "version": "1.3.0"
+}
+```
+
+Run all quality gates locally to ensure contracts, corpus, skills, and MCP integration tests pass:
+
+```bash
+npm test
 ```
 
 Commit the version bump:
 
 ```bash
-git add gemini-extension.json
-git commit -m "bump version to 1.2.0"
+git add gemini-extension.json package.json package-lock.json
+git commit -m "bump version to 1.3.0"
 git push
 ```
 
 ### 2. Tag the release
 
 ```bash
-git tag v1.2.0
-git push origin v1.2.0
+git tag v1.3.0
+git push origin v1.3.0
 ```
 
-This triggers the release workflow. Check the **Actions** tab to monitor progress.
+This triggers the `.github/workflows/release.yml` workflow. Check the **Actions** tab to monitor progress.
 
 ### 3. Mark as latest (optional)
 

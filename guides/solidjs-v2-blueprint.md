@@ -22,7 +22,7 @@ Deliver a deterministic SolidJS skill system with:
 
 ## Skill layers
 
-### Macro
+### Macro (5)
 
 - `solid-component-builder`
 - `solid-refactor-assistant`
@@ -30,16 +30,23 @@ Deliver a deterministic SolidJS skill system with:
 - `solid-scaffold-bootstrap`
 - `solid-design-patterns`
 
-### Router + domain
+### Domain Subskills (12)
 
 - `solid-intent-router`
 - `solid-reactivity-core-expert`
 - `solid-control-flow-rendering`
 - `solid-state-architecture`
+- `solid-primitives-ecosystem`
+- `solid-forms-validation`
+- `solid-accessibility-a11y`
+- `solid-animation-transitions`
 - `solid-router-data-navigation`
 - `solid-start-server-runtime`
 - `solid-ssr-hydration-debugger`
 - `solid-meta-head-management`
+
+### Quality & Testing (1)
+
 - `solid-testing-quality-gates`
 
 ## Required quality commands

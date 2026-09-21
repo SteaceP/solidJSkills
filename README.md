@@ -12,11 +12,70 @@ This is a collection of SolidJS-focused skills, guides, and documentation design
 
 When you connect your AI agent to this, it gets:
 
-- **SolidJS knowledge**: Guides and references for SolidJS 1.x production patterns (reactivity, routing, SSR, etc.) along with SolidJS 2.0-rc.9 preview and migration paths
-- **Specific skills**: Workflows for refactoring, testing, building components, reviewing code, and scaffolding projects
-- **Validation tools**: Scripts to check that code follows SolidJS best practices
+- **SolidJS Framework Version Standards**:
+  - **SolidJS 1.x (Production Stable - Default)**: Strict enforcement of production conventions (`createSignal` accessor calls `count()`, `<Index>` for primitive arrays, `<Suspense fallback={...}>`, `createResource`, `mergeProps`/`splitProps`).
+  - **SolidJS 2.0-rc.9 (Release Candidate)**: First-class async reactive graph, `<For keyed={false}>` (replacing `<Index>`), `<Loading>` and `<Errored>` boundaries (replacing `<Suspense>`), `<Reveal>` (replacing `<SuspenseList>`), microtask auto-batching and `flush()` (replacing `batch()`), generator `action()` and `createOptimisticStore()`, and Vite plugin start mode.
+  - **Zero Version Mixing**: Prohibits mixing v1 and v2 APIs in the same component.
+- **18 Specialized SolidJS Skills**: Contract-enforced workflows covering component creation, React-to-Solid migration, 1.x-to-2.0 upgrades, fine-grained reactivity audits, full-stack SolidStart, accessibility (Kobalte/Corvu), animation, and testing.
+- **10 MCP Tools**: Real-time access to a 233-doc normalized corpus, symbol resolution, intent routing, static code auditing, and AGENTS.md verification checklists.
+- **4 MCP Prompts**: Pre-engineered prompts for code review, reactivity auditing, component scaffolding, and React-to-Solid conversion.
+- **Validation Quality Gates**: Deterministic scripts (`npm test`) ensuring all docs, output contracts, and skill references adhere to repository standards.
 
-Beyond just SolidJS stuff, this repo also has useful guides on building your own skills, creating rules, and setting up workflows — helpful if you're building your own MCP skill projects.
+---
+
+## Supported Framework Versions
+
+| Dimension | SolidJS 1.x (Production Stable - Default) | SolidJS 2.0-rc.9 (Release Candidate) |
+| :--- | :--- | :--- |
+| **Status** | Production Stable (Default) | Release Candidate (`2.0.0-rc.9`) |
+| **Targeting Trigger** | Default, or `"solid-js": "^1.x"` in `package.json` | Explicit request, or `"solid-js": "^2.0.0-rc"` |
+| **Async Data** | `createResource(source, fetcher)` + `<Suspense>` | Native async graph: `createMemo(async () => ...)` |
+| **Async Boundaries** | `<Suspense fallback={<Spinner />}>` | `<Loading fallback={<Spinner />}>` + `<Errored>` |
+| **Boundary Reveal** | `<SuspenseList revealOrder="..." tail="...">` | `<Reveal order="sequential"\|"together" collapsed>` |
+| **Primitive Lists** | `<Index each={list()}>{(item, i) => ...}</Index>` | `<For each={list()} keyed={false}>{(item, i) => ...}</For>` |
+| **Keyed Lists** | `<For each={list()}>{(item, i) => ...}</For>` | `<For each={list()} keyed>{(item, i) => ...}</For>` |
+| **Batching** | Manual `batch(() => { ... })` | Auto-batched on microtask; `flush()` for sync reads |
+| **Dynamic Element** | `<Dynamic component={Tag} />` | Functional `dynamic(Tag)` |
+| **Mutations** | Manual signals or router actions | Generator `action(function* () { yield ... })` |
+| **Full-Stack / SSR** | Standalone `@solidjs/start` (Vinxi) | Vite plugin Start Mode (`@solidjs/vite-plugin`) |
+
+---
+
+## Available MCP Tools & Prompts
+
+### 10 MCP Tools
+The `solidjskills` server exposes 10 tools accessible to any MCP client:
+
+1. `list_docs`: List all documentation files across allowed repository roots.
+2. `read_doc`: Read a document by repo path, corpus path, or `doc_id` (supports section extraction and line pagination).
+3. `search_docs`: Search documentation by API symbol, keyword, or path.
+4. `list_corpus_docs`: List normalized SolidJS corpus documents with stable metadata (`package`, `topic`, `doc_id`).
+5. `read_corpus_doc`: Read a normalized corpus document by `doc_id`.
+6. `search_corpus`: Ranked manifest-backed search using headings, tags, symbols, and topics (supports `full_text: true`).
+7. `resolve_solid_api`: Resolve a Solid API symbol (e.g. `createSignal`, `createMemo`, `Loading`, `dynamic`) directly to authoritative documentation.
+8. `route_solid_intent`: Deterministically route user requirements to primary and secondary skills with confidence score and rationale.
+9. `audit_solid_code`: Statically analyze SolidJS code snippets for prop destructuring, effect misuse, uninvoked signals, and mixed v1/v2 API anti-patterns.
+10. `get_solid_checklist`: Retrieve AGENTS.md verification criteria (`type='review'`) or output schemas (`type='contracts'`).
+
+### 4 MCP Prompts
+- `review-solid-code`: Structured review against AGENTS.md reactivity, version standards, performance, and accessibility checklist.
+- `audit-reactivity`: Pinpointed audit detecting signal leaks, lost reactivity, stale closures, or effect loops.
+- `scaffold-component`: Production-grade TypeScript component scaffolding with proper props proxying and ARIA semantics.
+- `migrate-react-to-solid`: Deterministic mapping from React hooks (`useState`, `useEffect`, `useMemo`, `.map()`) to native SolidJS primitives.
+
+---
+
+## 18 Specialized Skills
+
+Skills are organized into three layers:
+
+- **Macro Skills**: `solid-component-builder`, `solid-refactor-assistant`, `solid-reviewer`, `solid-scaffold-bootstrap`, `solid-design-patterns`.
+- **Domain Subskills**: `solid-intent-router`, `solid-reactivity-core-expert`, `solid-control-flow-rendering`, `solid-state-architecture`, `solid-primitives-ecosystem`, `solid-forms-validation`, `solid-accessibility-a11y`, `solid-animation-transitions`, `solid-router-data-navigation`, `solid-ssr-hydration-debugger`, `solid-start-server-runtime`, `solid-meta-head-management`.
+- **Quality & Testing**: `solid-testing-quality-gates`.
+
+Every skill includes a dedicated in-depth guide in its `references/` directory.
+
+---
 
 ## Getting Started
 
@@ -124,6 +183,22 @@ Most MCP clients need a command to start the server. Use:
 
 - **Command**: `node`
 - **Args**: `/ABSOLUTE/PATH/TO/solidJSkills/mcp-server/src/index.js`
+
+## Quality Gates & Validation
+
+Run the complete test suite and quality gates:
+
+```bash
+# Run all quality gates (corpus validation, skill checks, contract verification, smoke evals, integration tests)
+npm test
+
+# Run individual verification checks
+npm run validate:corpus     # Validates 233 normalized docs in manifest.jsonl
+npm run validate:skills     # Validates all 18 solid skill definitions and contracts
+npm run validate:contracts  # Validates JSON schema contracts
+npm run smoke               # Executes intent router and skill smoke evaluations
+npm run test:integration    # Executes MCP server integration suite (31 checks)
+```
 
 ## Contributing
 
