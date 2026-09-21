@@ -12,7 +12,11 @@
         "validate:contracts": "node tools/scripts/validate-output-contracts.mjs",
         "normalize": "node tools/scripts/normalize-solid-docs.mjs",
         "smoke": "node tools/scripts/run-smoke-evals.mjs",
-        "scaffold": "node tools/scripts/scaffold-skill.mjs"
+        "scaffold": "node tools/scripts/scaffold-skill.mjs",
+        "release": "node tools/scripts/release.mjs",
+        "release:patch": "node tools/scripts/release.mjs patch",
+        "release:minor": "node tools/scripts/release.mjs minor",
+        "release:major": "node tools/scripts/release.mjs major"
     },
     "devDependencies": {},
     "engines": {

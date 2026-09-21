@@ -22,7 +22,31 @@ Since solidJSkills is platform-independent (no compiled binaries), a single gene
 
 ## Creating a release
 
-### 1. Update the version and validate
+### Automated Release (Recommended)
+
+Run the automated release script, which validates working tree cleanliness, runs `npm test` quality gates, synchronizes versions in `package.json`, `package-lock.json`, and `gemini-extension.json`, commits, creates the annotated tag, and pushes with `--follow-tags`:
+
+```bash
+# Automated patch release (e.g. 1.3.0 -> 1.3.1)
+npm run release:patch
+
+# Automated minor release (e.g. 1.3.0 -> 1.4.0)
+npm run release:minor
+
+# Automated major release (e.g. 1.3.0 -> 2.0.0)
+npm run release:major
+
+# Interactive prompt or explicit version
+npm run release
+npm run release -- 1.3.1
+
+# Preview changes without modifying files or pushing
+npm run release -- --dry-run patch
+```
+
+### Manual Release Steps (Alternative)
+
+#### 1. Update the version and validate
 
 Update the `version` field in both `gemini-extension.json` and the root `package.json` (e.g. `1.3.0`):
 
@@ -56,16 +80,16 @@ git commit -m "bump version to 1.3.0"
 git push
 ```
 
-### 2. Tag the release
+#### 2. Tag and push the release
 
 ```bash
-git tag v1.3.0
-git push origin v1.3.0
+git tag -a v1.3.0 -m "release v1.3.0"
+git push origin main --follow-tags
 ```
 
 This triggers the `.github/workflows/release.yml` workflow. Check the **Actions** tab to monitor progress.
 
-### 3. Mark as latest (optional)
+#### 3. Mark as latest (optional)
 
 The workflow creates the release automatically. If you want a specific release to be the one users get by default, make sure it is marked as **Latest** on the GitHub Releases page. By default, GitHub marks the most recent non-prerelease as latest.
 
