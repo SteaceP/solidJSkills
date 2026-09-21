@@ -564,6 +564,42 @@ async function runTests() {
             errors.push(`route_solid_intent (primitives): expected solid-component-builder + solid-primitives-ecosystem, got: ${JSON.stringify(routePrimParsed)}`);
         }
 
+        // 36. Call audit_solid_code for no-browser-globals-in-setup
+        const auditBrowserId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'audit_solid_code',
+            arguments: { code: 'function Comp() { const width = window.innerWidth; return <div>{width}</div>; }' }
+        }, auditBrowserId);
+        const auditBrowserResp = await waitForResponse(serverProc, auditBrowserId);
+        const auditBrowserParsed = JSON.parse(auditBrowserResp.result?.content?.[0]?.text || '{}');
+        if (!auditBrowserParsed.issues?.some((i) => i.rule === 'no-browser-globals-in-setup')) {
+            errors.push(`audit_solid_code (browser-globals): expected no-browser-globals-in-setup rule trigger, got: ${JSON.stringify(auditBrowserParsed)}`);
+        }
+
+        // 37. Call audit_solid_code for no-signal-mutation-in-memo
+        const auditMemoId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'audit_solid_code',
+            arguments: { code: 'const doubled = createMemo(() => { setCurrentPage(totalPages()); return 1; });' }
+        }, auditMemoId);
+        const auditMemoResp = await waitForResponse(serverProc, auditMemoId);
+        const auditMemoParsed = JSON.parse(auditMemoResp.result?.content?.[0]?.text || '{}');
+        if (!auditMemoParsed.issues?.some((i) => i.rule === 'no-signal-mutation-in-memo')) {
+            errors.push(`audit_solid_code (memo-mutation): expected no-signal-mutation-in-memo rule trigger, got: ${JSON.stringify(auditMemoParsed)}`);
+        }
+
+        // 38. Call audit_solid_code for no-untracked-prop-copy
+        const auditPropCopyId = reqId++;
+        sendJsonRpc(serverProc, 'tools/call', {
+            name: 'audit_solid_code',
+            arguments: { code: 'function Comp(props) { const title = props.title; return <div>{title}</div>; }' }
+        }, auditPropCopyId);
+        const auditPropCopyResp = await waitForResponse(serverProc, auditPropCopyId);
+        const auditPropCopyParsed = JSON.parse(auditPropCopyResp.result?.content?.[0]?.text || '{}');
+        if (!auditPropCopyParsed.issues?.some((i) => i.rule === 'no-untracked-prop-copy')) {
+            errors.push(`audit_solid_code (prop-copy): expected no-untracked-prop-copy rule trigger, got: ${JSON.stringify(auditPropCopyParsed)}`);
+        }
+
     } finally {
         serverProc.kill('SIGTERM');
         await new Promise((r) => setTimeout(r, 200));
@@ -577,7 +613,7 @@ async function runTests() {
         return;
     }
 
-    console.log('MCP integration tests passed (35 checks).');
+    console.log('MCP integration tests passed (38 checks).');
 }
 
 runTests().catch((err) => {

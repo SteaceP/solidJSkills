@@ -72,7 +72,7 @@ The `solidjskills` server exposes 10 tools accessible to any MCP client:
 6. `search_corpus`: Ranked manifest-backed search using headings, tags, symbols, and topics (supports `full_text: true`).
 7. `resolve_solid_api`: Resolve a Solid API symbol (e.g. `createSignal`, `createMemo`, `Loading`, `dynamic`) directly to authoritative documentation.
 8. `route_solid_intent`: Deterministically route user requirements to primary and secondary skills with confidence score and rationale.
-9. `audit_solid_code`: Statically analyze SolidJS code snippets for prop destructuring, effect misuse, uninvoked signals, and mixed v1/v2 API anti-patterns.
+9. `audit_solid_code`: Statically analyze SolidJS code snippets for prop destructuring, effect misuse, memo signal mutations, untracked prop copies, SSR client global leaks, uninvoked signals, and mixed v1/v2 API anti-patterns.
 10. `get_solid_checklist`: Retrieve AGENTS.md verification criteria (`type='review'`) or output schemas (`type='contracts'`).
 
 ### 4 MCP Prompts

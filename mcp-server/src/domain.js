@@ -476,6 +476,49 @@ export function auditSolidCode(code) {
     });
   }
 
+  // 7. Accessing browser globals (window, document, localStorage) without isServer or onMount
+  const hasBrowserGlobal = /\b(window|document|localStorage)\.[A-Za-z0-9_]+/g;
+  if (!/\bisServer\b/.test(code) && !/onMount\s*\(/.test(code)) {
+    let bgMatch;
+    while ((bgMatch = hasBrowserGlobal.exec(code)) !== null) {
+      const globalName = bgMatch[1];
+      issues.push({
+        rule: 'no-browser-globals-in-setup',
+        severity: 'error',
+        message: `Detected direct access to browser global '${globalName}' during component setup without an 'isServer' guard or 'onMount' wrapper. In SSR/SolidStart environments, this causes hydration mismatches or server crashes.`,
+        recommendation: `Wrap browser-only logic in onMount(() => { ... }) or guard with if (!isServer) from 'solid-js/web'.`
+      });
+      break; // flag once
+    }
+  }
+
+  // 8. createMemo writing to a signal (setter call inside memo)
+  const memoSettingSignalRegex = /createMemo\s*\(\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z0-9_]+)\s*=>\s*\{[^}]*set[A-Z0-9_][A-Za-z0-9_]*\s*\(/g;
+  if (memoSettingSignalRegex.test(code)) {
+    issues.push({
+      rule: 'no-signal-mutation-in-memo',
+      severity: 'error',
+      message: 'Detected signal setter call inside createMemo. Memos in SolidJS must be pure derived computations without reactive side effects.',
+      recommendation: 'Derive state directly without writing to secondary signals, or use createEffect exclusively for external side effects.'
+    });
+  }
+
+  // 9. Assigning reactive prop to local variable during setup
+  const propCopyRegex = /const\s+([A-Za-z0-9_]+)\s*=\s*props\.([A-Za-z0-9_]+)\s*;/g;
+  while ((match = propCopyRegex.exec(code)) !== null) {
+    const localIdent = match[1];
+    const propKey = match[2];
+    const jsxUsage = new RegExp(`\\{${localIdent}\\}|\\b${localIdent}\\b`, 'g');
+    if (jsxUsage.test(code)) {
+      issues.push({
+        rule: 'no-untracked-prop-copy',
+        severity: 'warning',
+        message: `Copied reactive property 'props.${propKey}' to local variable '${localIdent}' during component setup. In SolidJS, props are reactive proxies; assigning to a local variable captures only the initial value and breaks reactivity.`,
+        recommendation: `Access 'props.${propKey}' directly in JSX/memos, or wrap in createMemo(() => props.${propKey}).`
+      });
+    }
+  }
+
   const score = issues.filter((i) => i.severity === 'error').length === 0 ? (issues.length === 0 ? 100 : 85) : Math.max(30, 80 - issues.length * 20);
 
   return {
